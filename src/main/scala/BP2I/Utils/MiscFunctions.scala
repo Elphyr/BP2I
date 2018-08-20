@@ -1,6 +1,8 @@
 package BP2I.Utils
 
+import BP2I.Utils.Param.spark
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions.input_file_name
 
 object MiscFunctions {
 
@@ -16,5 +18,16 @@ object MiscFunctions {
     val sqlDFWOHeader = sqlDF.filter(row => row != header)
 
     sqlDFWOHeader
+  }
+
+  def getFileName(dataFrame: DataFrame): String = {
+  import spark.sqlContext.implicits._
+
+    val fileName = dataFrame
+      .select(input_file_name()).map(x => x.getString(0)).collect().toList.last
+      .split("/").last
+        .replaceAll(".des", "")
+
+    fileName
   }
 }

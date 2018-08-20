@@ -1,17 +1,13 @@
 package BP2I.Utils
 
-import BP2I.Utils.Param.{REFTEC_DIRECTORY, spark}
+import BP2I.Utils.MiscFunctions.getFileName
+import BP2I.Utils.Param.{REFTEC_DIRECTORY, logger, spark}
 import org.apache.spark.sql.DataFrame
 
 object HiveFunctions {
 
-  /**
-    * Goal: by reading a .des file, build a Hive query with the right types.
-    * @param tableName
-    * @param desPath
-    * @return
-    */
-  def automaticHiveQuery(tableName: String, desPath: String): List[String] = {
+
+  def writeAutoHiveQuery(desPath: String): (String, List[String]) = {
   import spark.sqlContext.implicits._
 
     val desDF = spark.read
@@ -19,19 +15,26 @@ object HiveFunctions {
       .option("delimiter", ";")
       .csv(desPath)
 
+    val tableName = getFileName(desDF)
+    logger.info("Step 2: this is the name of the tables created : " + "\n" + tableName)
+
     val columns = desDF.select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
 
     val types = desDF.select("DATA_TYPE").map(x => x.getString(0)).collect.toList
 
     val adaptedTypes = adaptTypes(types)
 
-    var columnsAndTypes = List[String]()
+    var hiveQuery = List[String]()
     for (x <- 0 until desDF.count().toInt) {
 
-      columnsAndTypes ::= columns(x) + " " + adaptedTypes(x)
+      hiveQuery ::= columns(x) + " " + adaptedTypes(x)
     }
 
-    columnsAndTypes.reverse
+    val finalHiveQuery = hiveQuery.reverse
+
+    logger.info("Step 2: this is the Hive query used : " + "\n" + finalHiveQuery)
+
+    (tableName, finalHiveQuery)
   }
 
   /**
@@ -62,13 +65,14 @@ object HiveFunctions {
   def createInternalTableQuery(tableName: String, columnsAndTypes: List[String]): DataFrame = {
 
     spark.sql(s"DROP TABLE IF EXISTS my$tableName")
+    spark.sql(s"DROP TABLE IF EXISTS ${tableName}_int")
 
-    val internalTableQuery = s"CREATE TABLE my$tableName (" +
+    val internalTableQuery = s"CREATE TABLE ${tableName}_int (" +
       s"${columnsAndTypes.mkString(", ")}) " +
       s"STORED AS PARQUET"
 
     spark.sql(internalTableQuery)
-    spark.sql(s"INSERT OVERWRITE TABLE my$tableName SELECT * FROM $tableName")
+    spark.sql(s"INSERT OVERWRITE TABLE ${tableName}_int SELECT * FROM $tableName")
   }
 
   /**
