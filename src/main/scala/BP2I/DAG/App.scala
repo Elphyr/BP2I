@@ -1,7 +1,7 @@
 package BP2I.DAG
 
-import BP2I.Utils.Param.{REFTEC_DIRECTORY, spark, logger}
 import BP2I.Utils.Functions._
+import BP2I.Utils.Param.{REFTEC_DIRECTORY, logger, spark}
 
 object App {
 
@@ -11,10 +11,10 @@ object App {
     val tableName = "REFTEC_CA_COMPANY_02082018_1"
     val desPath = REFTEC_DIRECTORY + "REFTEC_CA_COMPANY_02082018_1.des"
 
-    logger.info("Step 2: read the .des file and create Hive query accordingly")
+    logger.info("Step 2.1: read the .des file and create Hive query accordingly")
     val hiveQuery = automaticHiveQuery(tableName, desPath)
 
-    logger.info("Hive query : " + "\n" + hiveQuery)
+    logger.info("Step 2.2: this is the Hive query used : " + "\n" + hiveQuery)
 
     logger.info("Step 3: creating external and internal tables")
     createExternalTableQuery(tableName, hiveQuery) //name of the table: $tableName
@@ -30,8 +30,5 @@ object App {
     println("COUNT ITEMS == " + finalDF.count()) //should be 491 in this example
 
     finalDF.printSchema()
-
-    logger.warn("PROCESSUS COMPLETED")
-
   }
 }
