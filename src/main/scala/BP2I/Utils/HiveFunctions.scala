@@ -3,7 +3,7 @@ package BP2I.Utils
 import BP2I.Utils.Param.{REFTEC_DIRECTORY, spark}
 import org.apache.spark.sql.DataFrame
 
-object Functions {
+object HiveFunctions {
 
   /**
     * Goal: by reading a .des file, build a Hive query with the right types.
@@ -69,20 +69,6 @@ object Functions {
 
     spark.sql(internalTableQuery)
     spark.sql(s"INSERT OVERWRITE TABLE my$tableName SELECT * FROM $tableName")
-  }
-
-  /**
-    * Spark 2.1 keeps the header whatever we do, we need to remove it.
-    * @param sqlDF
-    * @return
-    */
-  def removeHeader(sqlDF: DataFrame): DataFrame = {
-
-    val header = sqlDF.first()
-
-    val sqlDFWOHeader = sqlDF.filter(row => row != header)
-
-    sqlDFWOHeader
   }
 
   /**
