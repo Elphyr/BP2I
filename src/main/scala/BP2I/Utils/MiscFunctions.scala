@@ -20,13 +20,18 @@ object MiscFunctions {
     sqlDFWOHeader
   }
 
+  /**
+    * Goal: get the file name from the whole path and remove the extension (.des, .dat, etc.).
+    * @param dataFrame
+    * @return
+    */
   def getFileName(dataFrame: DataFrame): String = {
   import spark.sqlContext.implicits._
 
     val fileName = dataFrame
       .select(input_file_name()).map(x => x.getString(0)).collect().toList.last
       .split("/").last
-        .replaceAll(".des", "")
+        .replaceAll(".*", "")
 
     fileName
   }
