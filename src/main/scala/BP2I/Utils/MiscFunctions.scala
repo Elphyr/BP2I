@@ -25,13 +25,13 @@ object MiscFunctions {
     * @param dataFrame
     * @return
     */
-  def getFileName(dataFrame: DataFrame): String = {
+  def getFileName(dataFrame: DataFrame, extension: String): String = {
   import spark.sqlContext.implicits._
 
     val fileName = dataFrame
       .select(input_file_name()).map(x => x.getString(0)).collect().toList.last
       .split("/").last
-        .replaceAll(".*", "")
+        .replaceAll(extension, "")
 
     fileName
   }

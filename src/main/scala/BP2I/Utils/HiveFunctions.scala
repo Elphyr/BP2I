@@ -15,7 +15,7 @@ object HiveFunctions {
       .option("delimiter", ";")
       .csv(desPath)
 
-    val tableName = getFileName(desDF)
+    val tableName = getFileName(desDF, ".des")
     logger.info("Step 2: this is the core component of the name of the tables created: " + "\n" + tableName)
 
     val columns = desDF.select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
