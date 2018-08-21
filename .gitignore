@@ -78,5 +78,15 @@ fabric.properties
 *.class
 *.log
 
-
 # End of https://www.gitignore.io/api/scala,intellij
+
+### Personal add ###
+
+# Fat-jar #
+
+target/
+
+# Hive metastore #
+
+metastore_db/
+BP2I/
