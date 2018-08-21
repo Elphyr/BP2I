@@ -16,7 +16,7 @@ object HiveFunctions {
       .csv(desPath)
 
     val tableName = getFileName(desDF)
-    logger.info("Step 2: this is the name of the tables created : " + "\n" + tableName)
+    logger.info("Step 2: this is the core component of the name of the tables created: " + "\n" + tableName)
 
     val columns = desDF.select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
 
@@ -24,17 +24,16 @@ object HiveFunctions {
 
     val adaptedTypes = adaptTypes(types)
 
-    var hiveQuery = List[String]()
+    var columnsAndTypes = List[String]()
     for (x <- 0 until desDF.count().toInt) {
 
-      hiveQuery ::= columns(x) + " " + adaptedTypes(x)
+      columnsAndTypes ::= columns(x) + " " + adaptedTypes(x)
     }
 
-    val finalHiveQuery = hiveQuery.reverse
+    val orderedColumnsAndTypes = columnsAndTypes.reverse
+    logger.info("Step 2: this is the Hive query used : " + "\n" + orderedColumnsAndTypes)
 
-    logger.info("Step 2: this is the Hive query used : " + "\n" + finalHiveQuery)
-
-    (tableName, finalHiveQuery)
+    (tableName, orderedColumnsAndTypes)
   }
 
   /**
@@ -51,7 +50,7 @@ object HiveFunctions {
     val externalTableQuery = s"CREATE EXTERNAL TABLE $tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
       s"ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE " +
-      s"LOCATION '$REFTEC_DIRECTORY/dat/' "
+      s"LOCATION '$REFTEC_DIRECTORY*.dat' "
 
     spark.sql(externalTableQuery)
   }
@@ -64,7 +63,6 @@ object HiveFunctions {
     */
   def createInternalTableQuery(tableName: String, columnsAndTypes: List[String]): DataFrame = {
 
-    spark.sql(s"DROP TABLE IF EXISTS my$tableName")
     spark.sql(s"DROP TABLE IF EXISTS ${tableName}_int")
 
     val internalTableQuery = s"CREATE TABLE ${tableName}_int (" +
