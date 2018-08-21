@@ -6,7 +6,11 @@ import org.apache.spark.sql.DataFrame
 
 object HiveFunctions {
 
-
+  /**
+    * Goal: read the .des file, and write a Hive query accordingly.
+    * @param desPath
+    * @return
+    */
   def writeAutoHiveQuery(desPath: String): (String, List[String]) = {
   import spark.sqlContext.implicits._
 
@@ -24,7 +28,7 @@ object HiveFunctions {
 
     val adaptedTypes = adaptTypes(types)
 
-    var columnsAndTypes = List[String]()
+    var columnsAndTypes = List[String]("Nature_Action CHAR")
     for (x <- 0 until desDF.count().toInt) {
 
       columnsAndTypes ::= columns(x) + " " + adaptedTypes(x)
@@ -49,7 +53,7 @@ object HiveFunctions {
 
     val externalTableQuery = s"CREATE EXTERNAL TABLE $tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
-      s"ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE " +
+      s"ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE " +
       s"LOCATION '$REFTEC_DIRECTORY*.dat' "
 
     spark.sql(externalTableQuery)
@@ -82,6 +86,6 @@ object HiveFunctions {
     */
   def adaptTypes(types: List[String]): List[String] = {
 
-    types.map { case "nvarchar" => "STRING" ; case "binary" => "STRING" ; case "timestamp" => "STRING" ; case x => x.toUpperCase }
+    types.map { case "nvarchar" => "VARCHAR" ;  case "binary" => "STRING" ; case "timestamp" => "STRING" ; case x => x.toUpperCase }
   }
 }
