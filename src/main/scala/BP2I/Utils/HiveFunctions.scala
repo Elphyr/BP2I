@@ -1,7 +1,7 @@
 package BP2I.Utils
 
 import BP2I.Utils.MiscFunctions.getFileName
-import BP2I.Utils.Param.{REFTEC_DIRECTORY, logger, spark}
+import BP2I.Utils.Param.{logger, spark}
 import org.apache.spark.sql.DataFrame
 
 object HiveFunctions {
@@ -47,14 +47,14 @@ object HiveFunctions {
     * @param columnsAndTypes
     * @return
     */
-  def createExternalTableQuery(tableName: String, columnsAndTypes: List[String]): DataFrame = {
+  def createExternalTableQuery(tableName: String, columnsAndTypes: List[String], dataDir: String): DataFrame = {
 
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
     val externalTableQuery = s"CREATE EXTERNAL TABLE $tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
-      s"ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE " +
-      s"LOCATION '$REFTEC_DIRECTORY*.dat' "
+      s"ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE " +
+      s"LOCATION '$dataDir*.dat' "
 
     spark.sql(externalTableQuery)
   }
