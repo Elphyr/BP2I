@@ -35,4 +35,16 @@ object MiscFunctions {
 
     fileName
   }
+
+  /**
+    * Goal: split the full file name to get informations.
+    * Full file name: Application_Table_Date_Heure_Version
+    * Example: REFTEC_CA_COMPANY_02082018_1
+    */
+  def splitFullFileName(fullFileName: String): Seq[String] = {
+
+    val splitFileName = fullFileName.split("_[0-9]")
+
+    splitFileName
+  }
 }

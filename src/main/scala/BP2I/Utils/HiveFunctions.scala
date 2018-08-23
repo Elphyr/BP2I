@@ -35,7 +35,7 @@ object HiveFunctions {
     }
 
     val orderedColumnsAndTypes = columnsAndTypes.reverse
-    logger.info("Step 2: this is the Hive query used : " + "\n" + orderedColumnsAndTypes)
+    logger.info("Step 2: this is the Hive query used : " + "\n" + orderedColumnsAndTypes.mkString(", "))
 
     (tableName, orderedColumnsAndTypes)
   }
@@ -53,7 +53,7 @@ object HiveFunctions {
 
     val externalTableQuery = s"CREATE EXTERNAL TABLE $tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
-      s"ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE " +
+      s"ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE " +
       s"LOCATION '$dataDir*.dat' "
 
     spark.sql(externalTableQuery)
@@ -86,6 +86,6 @@ object HiveFunctions {
     */
   def adaptTypes(types: List[String]): List[String] = {
 
-    types.map { case "nvarchar" => "VARCHAR" ;  case "binary" => "STRING" ; case "timestamp" => "STRING" ; case x => x.toUpperCase }
+    types.map { case "nvarchar" => "VARCHAR" ;  case "binary" => "STRING" ; case "timestamp" => "STRING" ; case "ntext" => "STRING" ;  case x => x.toUpperCase }
   }
 }
