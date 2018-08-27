@@ -2,7 +2,9 @@ package BP2I.Utils
 
 import BP2I.Utils.MiscFunctions.{getFileName, unionDifferentTables}
 import BP2I.Utils.Param.{logger, spark}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.DataFrame
+
 
 object HiveFunctions {
 
@@ -91,19 +93,19 @@ object HiveFunctions {
 
   def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, columnsAndTypes: List[String]): Unit = {
 
-    logger.info("Step 5: feeding the new table into the already existing table with the same name.")
+    val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
 
     val oldTableDF = spark.sql(s"SELECT * FROM $tableName")
 
     val newTableDF = unionDifferentTables(oldTableDF, newDataTable)
       .dropDuplicates()
 
-    newTableDF.write.parquet("tmp_newTable")
+    newTableDF.write.parquet(s"$tmpDir")
 
     val externalTableQuery = s"CREATE EXTERNAL TABLE ${tableName}_tmp (" +
       s"${columnsAndTypes.mkString(", ")}) " +
       s"STORED AS PARQUET " +
-      s"LOCATION '/home/raphael/workspace/BP2I_Spark/tmp_newTable' "
+      s"LOCATION '$tmpDir' "
 
     spark.sql(externalTableQuery)
 
@@ -119,10 +121,9 @@ object HiveFunctions {
 
     spark.sql(s"DROP TABLE IF EXISTS ${tableName}_tmp")
 
-    val sparkSQL = spark.sql(s"SELECT * FROM $tableName")
+    val hadoopFileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
 
-    sparkSQL.select("Nature_Action").distinct().show(5, false)
-    sparkSQL.printSchema()
-
+    if(hadoopFileSystem.exists(new Path(tmpDir)))
+      hadoopFileSystem.delete(new Path(tmpDir), true)
   }
 }
