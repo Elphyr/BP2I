@@ -92,3 +92,4 @@ metastore_db/
 BP2I/
 spark-warehouse/
 output_temp/
+tmp_newTable/

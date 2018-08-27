@@ -18,6 +18,4 @@ object Param {
     .getOrCreate()
 
   val logger: Logger = Logger.getLogger("BP2I")
-
-  //val REFTEC_DIRECTORY = "/home/raphael/Documents/Lincoln/2018-BP2I/2018-08-Travail-Preliminaire/reftec_corrige/2018-08-18/REFTEC/REFTEC_CA_COMPANY_02082018_1/"
 }

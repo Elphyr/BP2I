@@ -1,6 +1,6 @@
 package BP2I.Utils
 
-import BP2I.Utils.MiscFunctions.getFileName
+import BP2I.Utils.MiscFunctions.{getFileName, unionDifferentTables}
 import BP2I.Utils.Param.{logger, spark}
 import org.apache.spark.sql.DataFrame
 
@@ -87,5 +87,42 @@ object HiveFunctions {
   def adaptTypes(types: List[String]): List[String] = {
 
     types.map { case "nvarchar" => "VARCHAR" ;  case "binary" => "STRING" ; case "timestamp" => "STRING" ; case "ntext" => "STRING" ;  case x => x.toUpperCase }
+  }
+
+  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, columnsAndTypes: List[String]): Unit = {
+
+    logger.info("Step 5: feeding the new table into the already existing table with the same name.")
+
+    val oldTableDF = spark.sql(s"SELECT * FROM $tableName")
+
+    val newTableDF = unionDifferentTables(oldTableDF, newDataTable)
+      .dropDuplicates()
+
+    newTableDF.write.parquet("tmp_newTable")
+
+    val externalTableQuery = s"CREATE EXTERNAL TABLE ${tableName}_tmp (" +
+      s"${columnsAndTypes.mkString(", ")}) " +
+      s"STORED AS PARQUET " +
+      s"LOCATION '/home/raphael/workspace/BP2I_Spark/tmp_newTable' "
+
+    spark.sql(externalTableQuery)
+
+    spark.sql(s"DROP TABLE IF EXISTS $tableName")
+
+    val internalTableQuery = s"CREATE TABLE $tableName (" +
+      s"${columnsAndTypes.mkString(", ")}) " +
+      s"STORED AS PARQUET"
+
+    spark.sql(internalTableQuery)
+    spark.catalog.refreshTable(s"$tableName")
+    spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM ${tableName}_tmp")
+
+    spark.sql(s"DROP TABLE IF EXISTS ${tableName}_tmp")
+
+    val sparkSQL = spark.sql(s"SELECT * FROM $tableName")
+
+    sparkSQL.select("Nature_Action").distinct().show(5, false)
+    sparkSQL.printSchema()
+
   }
 }
