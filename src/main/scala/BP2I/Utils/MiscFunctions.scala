@@ -1,8 +1,8 @@
 package BP2I.Utils
 
 import BP2I.Utils.Param.spark
-import org.apache.spark.sql.{Column, DataFrame}
 import org.apache.spark.sql.functions.input_file_name
+import org.apache.spark.sql.{Column, DataFrame}
 
 object MiscFunctions {
 
@@ -76,5 +76,20 @@ object MiscFunctions {
     }
 
     df1.select(compareColumns(cols1, sortOrder): _*).union(df2.select(compareColumns(cols2, sortOrder): _*))
+  }
+
+
+  /**
+    * Goal: if a table with 'Nature_Action' == 'U' is uploaded, check for similar lines and delete them.
+    */
+  def checkForUpdates(dataFrame: DataFrame, columnsAndTypes: List[String]): DataFrame = {
+    import spark.sqlContext.implicits._
+
+    val primaryColumn = columnsAndTypes(1).split(" ").head
+
+    val filteredDF = dataFrame.orderBy($"Nature_Action".desc)
+        .dropDuplicates(primaryColumn)
+
+    filteredDF
   }
 }

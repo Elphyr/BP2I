@@ -1,6 +1,6 @@
 package BP2I.Utils
 
-import BP2I.Utils.MiscFunctions.{getFileName, unionDifferentTables}
+import BP2I.Utils.MiscFunctions.{checkForUpdates, getFileName, unionDifferentTables}
 import BP2I.Utils.Param.{logger, spark}
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.DataFrame
@@ -105,9 +105,11 @@ object HiveFunctions {
     val currentTableDF = spark.sql(s"SELECT * FROM $tableName")
 
     val newTableDF = unionDifferentTables(currentTableDF, newDataTable)
-      .dropDuplicates()
+      .distinct()
 
-    newTableDF.write.parquet(s"$tmpDir")
+    val filteredNewTableDF = checkForUpdates(newTableDF, columnsAndTypes)
+
+    filteredNewTableDF.write.parquet(s"$tmpDir")
 
     val externalTableQuery = s"CREATE EXTERNAL TABLE ${tableName}_tmp (" +
       s"${columnsAndTypes.mkString(", ")}) " +
@@ -123,7 +125,9 @@ object HiveFunctions {
       s"STORED AS PARQUET"
 
     spark.sql(internalTableQuery)
+
     spark.catalog.refreshTable(s"$tableName")
+
     spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM ${tableName}_tmp")
 
     spark.sql(s"DROP TABLE IF EXISTS ${tableName}_tmp")
