@@ -88,16 +88,23 @@ object HiveFunctions {
     */
   def adaptTypes(types: List[String]): List[String] = {
 
-    types.map { case "nvarchar" => "VARCHAR" ;  case "binary" => "STRING" ; case "timestamp" => "STRING" ; case "ntext" => "STRING" ;  case x => x.toUpperCase }
+    types.map { case "nvarchar" => "VARCHAR" ;  case "binary" => "STRING" ; case "timestamp" => "STRING" ; case "ntext" => "STRING" ; case x => x.toUpperCase }
   }
 
+  /**
+    * Goal: when you add informations into a table, it checks if there are new columns and then merge both tables.
+    * The past records without the new column have a 'null' put into the columns.
+    * @param tableName
+    * @param newDataTable
+    * @param columnsAndTypes
+    */
   def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, columnsAndTypes: List[String]): Unit = {
 
     val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
 
-    val oldTableDF = spark.sql(s"SELECT * FROM $tableName")
+    val currentTableDF = spark.sql(s"SELECT * FROM $tableName")
 
-    val newTableDF = unionDifferentTables(oldTableDF, newDataTable)
+    val newTableDF = unionDifferentTables(currentTableDF, newDataTable)
       .dropDuplicates()
 
     newTableDF.write.parquet(s"$tmpDir")
