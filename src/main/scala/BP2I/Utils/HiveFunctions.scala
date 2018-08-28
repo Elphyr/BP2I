@@ -43,19 +43,18 @@ object HiveFunctions {
 
   /**
     * Goal: create an external table that loads the data in the right directory.
-    * TODO : add the directory to the parameters?
     * @param tableName
     * @param columnsAndTypes
     * @return
     */
-  def createExternalTableQuery(tableName: String, columnsAndTypes: List[String], dataDir: String): DataFrame = {
+  def createExternalTableQuery(tableName: String, columnsAndTypes: List[String], dataDirPath: String): DataFrame = {
 
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
     val externalTableQuery = s"CREATE EXTERNAL TABLE $tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
       s"ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE " +
-      s"LOCATION '$dataDir*.dat' "
+      s"LOCATION '$dataDirPath*.dat' "
 
     spark.sql(externalTableQuery)
   }
@@ -75,6 +74,7 @@ object HiveFunctions {
       s"STORED AS PARQUET"
 
     spark.sql(internalTableQuery)
+    
     spark.sql(s"INSERT OVERWRITE TABLE ${tableName}_int SELECT * FROM $tableName")
   }
 

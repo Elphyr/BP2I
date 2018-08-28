@@ -115,6 +115,11 @@ object MiscFunctions {
     filteredDF
   }
 
+  /**
+    * Goal: check if a directory exists, and delete it afterward. Works with HDFS directories.
+    * @param path
+    * @return
+    */
   def deleteTmpDirectory(path: String): AnyVal = {
 
     val hadoopFileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
