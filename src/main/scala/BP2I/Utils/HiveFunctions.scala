@@ -12,7 +12,7 @@ object HiveFunctions {
     * @param desPath
     * @return
     */
-  def writeAutoHiveQuery(desPath: String): (String, List[String]) = {
+  def readDesFile(desPath: String): (String, String, List[String]) = {
   import spark.sqlContext.implicits._
 
     val desDF = spark.read
@@ -27,6 +27,8 @@ object HiveFunctions {
 
     val types = desDF.select("DATA_TYPE").map(x => x.getString(0)).collect.toList
 
+    val primaryColumn = desDF.filter($"IS_NULLABLE" === "NO").select("COLUMN_NAME").map(x => x.getString(0)).collect.toList.head
+
     val adaptedTypes = adaptTypes(types)
 
     var columnsAndTypes = List[String]("Nature_Action CHAR")
@@ -38,7 +40,7 @@ object HiveFunctions {
     val orderedColumnsAndTypes = columnsAndTypes.reverse
     logger.warn("Step 2: this is the Hive query used : " + "\n" + orderedColumnsAndTypes.mkString(", "))
 
-    (tableName, orderedColumnsAndTypes)
+    (tableName, primaryColumn, orderedColumnsAndTypes)
   }
 
   /**
@@ -74,7 +76,7 @@ object HiveFunctions {
       s"STORED AS PARQUET"
 
     spark.sql(internalTableQuery)
-    
+
     spark.sql(s"INSERT OVERWRITE TABLE ${tableName}_int SELECT * FROM $tableName")
   }
 
@@ -97,7 +99,7 @@ object HiveFunctions {
     * @param newDataTable
     * @param columnsAndTypes
     */
-  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, columnsAndTypes: List[String]): Unit = {
+  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): Unit = {
 
     val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
 
@@ -108,16 +110,16 @@ object HiveFunctions {
     val newTableDF = unionDifferentTables(currentTableDF, newDataTable)
       .distinct()
 
-    val filterDeletesNewTableDF = checkForDeletes(newTableDF, columnsAndTypes)
+    val filterDeletedLinesNewTableDF = checkForDeletes(newTableDF, primaryColumn)
 
-    val filteredNewTableDF = checkForUpdates(filterDeletesNewTableDF, columnsAndTypes)
+    val filteredNewTableDF = checkForUpdates(filterDeletedLinesNewTableDF, primaryColumn)
 
     filteredNewTableDF.write.parquet(s"$tmpDir")
 
     val externalTableQuery = s"CREATE EXTERNAL TABLE ${tableName}_tmp (" +
       s"${columnsAndTypes.mkString(", ")}) " +
       s"STORED AS PARQUET " +
-      s"LOCATION '$tmpDir' "
+      s"LOCATION '$tmpDir'"
 
     spark.sql(externalTableQuery)
 

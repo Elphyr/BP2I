@@ -81,13 +81,11 @@ object MiscFunctions {
   /**
     * Goal: if a table with 'Nature_Action' == 'D', is uploaded, check for all lines with the same primary column and delete them.
     * @param dataFrame
-    * @param columnsAndTypes
+    * @param primaryColumn
     * @return
     */
-  def checkForDeletes(dataFrame: DataFrame, columnsAndTypes: List[String]): Dataset[Row] = {
+  def checkForDeletes(dataFrame: DataFrame, primaryColumn: String): Dataset[Row] = {
     import spark.sqlContext.implicits._
-
-    val primaryColumn = columnsAndTypes(1).split(" ").head
 
     val linesToDelete = dataFrame.filter($"Nature_Action" === "D")
       .select(primaryColumn)
@@ -101,13 +99,11 @@ object MiscFunctions {
   /**
     * Goal: if a table with 'Nature_Action' == 'U' is uploaded, check for similar lines and delete them.
     * @param dataFrame
-    * @param columnsAndTypes
+    * @param primaryColumn
     * @return
     */
-  def checkForUpdates(dataFrame: DataFrame, columnsAndTypes: List[String]): DataFrame = {
+  def checkForUpdates(dataFrame: DataFrame, primaryColumn: String): DataFrame = {
     import spark.sqlContext.implicits._
-
-    val primaryColumn = columnsAndTypes(1).split(" ").head
 
     val filteredDF = dataFrame.orderBy($"Nature_Action".desc)
         .dropDuplicates(primaryColumn)
