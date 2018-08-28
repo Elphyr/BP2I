@@ -1,8 +1,7 @@
 package BP2I.Utils
 
-import BP2I.Utils.MiscFunctions.{checkForUpdates, getFileName, unionDifferentTables}
+import BP2I.Utils.MiscFunctions._
 import BP2I.Utils.Param.{logger, spark}
-import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.DataFrame
 
 
@@ -22,7 +21,7 @@ object HiveFunctions {
       .csv(desPath)
 
     val tableName = getFileName(desDF, ".des")
-    logger.info("Step 2: this is the core component of the name of the tables created: " + "\n" + tableName)
+    logger.warn("Step 2: this is the core component of the name of the tables created: " + "\n" + tableName)
 
     val columns = desDF.select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
 
@@ -37,7 +36,7 @@ object HiveFunctions {
     }
 
     val orderedColumnsAndTypes = columnsAndTypes.reverse
-    logger.info("Step 2: this is the Hive query used : " + "\n" + orderedColumnsAndTypes.mkString(", "))
+    logger.warn("Step 2: this is the Hive query used : " + "\n" + orderedColumnsAndTypes.mkString(", "))
 
     (tableName, orderedColumnsAndTypes)
   }
@@ -102,12 +101,16 @@ object HiveFunctions {
 
     val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
 
+    deleteTmpDirectory(tmpDir)
+
     val currentTableDF = spark.sql(s"SELECT * FROM $tableName")
 
     val newTableDF = unionDifferentTables(currentTableDF, newDataTable)
       .distinct()
 
-    val filteredNewTableDF = checkForUpdates(newTableDF, columnsAndTypes)
+    val filterDeletesNewTableDF = checkForDeletes(newTableDF, columnsAndTypes)
+
+    val filteredNewTableDF = checkForUpdates(filterDeletesNewTableDF, columnsAndTypes)
 
     filteredNewTableDF.write.parquet(s"$tmpDir")
 
@@ -132,9 +135,6 @@ object HiveFunctions {
 
     spark.sql(s"DROP TABLE IF EXISTS ${tableName}_tmp")
 
-    val hadoopFileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
-
-    if(hadoopFileSystem.exists(new Path(tmpDir)))
-      hadoopFileSystem.delete(new Path(tmpDir), true)
+    deleteTmpDirectory(tmpDir)
   }
 }

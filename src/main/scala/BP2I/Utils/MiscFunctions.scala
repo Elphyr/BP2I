@@ -1,8 +1,9 @@
 package BP2I.Utils
 
 import BP2I.Utils.Param.spark
-import org.apache.spark.sql.functions.input_file_name
-import org.apache.spark.sql.{Column, DataFrame}
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.spark.sql.functions.{input_file_name, _}
+import org.apache.spark.sql.{Column, DataFrame, Dataset, Row}
 
 object MiscFunctions {
 
@@ -58,7 +59,6 @@ object MiscFunctions {
     * @return
     */
   def unionDifferentTables(df1: DataFrame, df2: DataFrame): DataFrame = {
-    import org.apache.spark.sql.functions._
 
     val cols1 = df1.columns.toSet
     val cols2 = df2.columns.toSet
@@ -78,9 +78,31 @@ object MiscFunctions {
     df1.select(compareColumns(cols1, sortOrder): _*).union(df2.select(compareColumns(cols2, sortOrder): _*))
   }
 
+  /**
+    * Goal: if a table with 'Nature_Action' == 'D', is uploaded, check for all lines with the same primary column and delete them.
+    * @param dataFrame
+    * @param columnsAndTypes
+    * @return
+    */
+  def checkForDeletes(dataFrame: DataFrame, columnsAndTypes: List[String]): Dataset[Row] = {
+    import spark.sqlContext.implicits._
+
+    val primaryColumn = columnsAndTypes(1).split(" ").head
+
+    val linesToDelete = dataFrame.filter($"Nature_Action" === "D")
+      .select(primaryColumn)
+      .map(x => x.getString(0)).collect.toList
+
+    val filteredDF = dataFrame.filter(!col(primaryColumn).isin(linesToDelete:_*))
+
+    filteredDF
+  }
 
   /**
     * Goal: if a table with 'Nature_Action' == 'U' is uploaded, check for similar lines and delete them.
+    * @param dataFrame
+    * @param columnsAndTypes
+    * @return
     */
   def checkForUpdates(dataFrame: DataFrame, columnsAndTypes: List[String]): DataFrame = {
     import spark.sqlContext.implicits._
@@ -91,5 +113,13 @@ object MiscFunctions {
         .dropDuplicates(primaryColumn)
 
     filteredDF
+  }
+
+  def deleteTmpDirectory(path: String): AnyVal = {
+
+    val hadoopFileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
+
+    if(hadoopFileSystem.exists(new Path(path)))
+      hadoopFileSystem.delete(new Path(path), true)
   }
 }
