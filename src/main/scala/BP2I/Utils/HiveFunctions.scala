@@ -99,7 +99,7 @@ object HiveFunctions {
     * @param newDataTable
     * @param columnsAndTypes
     */
-  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): Unit = {
+  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): DataFrame = {
 
     val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
 
@@ -133,10 +133,12 @@ object HiveFunctions {
 
     spark.catalog.refreshTable(s"$tableName")
 
-    spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM ${tableName}_tmp")
+    val finalTableDF = spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM ${tableName}_tmp")
 
     spark.sql(s"DROP TABLE IF EXISTS ${tableName}_tmp")
 
     deleteTmpDirectory(tmpDir)
+
+    finalTableDF
   }
 }

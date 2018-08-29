@@ -107,6 +107,8 @@ object MiscFunctions {
 
     val filteredDF = dataFrame.orderBy($"Nature_Action".desc)
         .dropDuplicates(primaryColumn)
+        .drop("Nature_Action")
+        .withColumn("Nature_Action", lit("I"))
 
     filteredDF
   }
