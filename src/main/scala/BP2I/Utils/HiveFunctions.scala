@@ -98,7 +98,7 @@ object HiveFunctions {
     * @param tableName
     * @param columnsAndTypes
     */
-  def dropNatureAction(dataFrame: DataFrame, tableName: String, columnsAndTypes: List[String]): Unit = {
+  def dropNatureAction(dataFrame: DataFrame, tableName: String, columnsAndTypes: List[String]): DataFrame = {
 
     val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
 
@@ -111,6 +111,8 @@ object HiveFunctions {
     spark.sql(internalTableQuery)
 
     finalDF.write.insertInto(s"$tableName")
+
+    finalDF
   }
 
   /**
