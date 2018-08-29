@@ -27,7 +27,9 @@ object HiveFunctions {
 
     val types = desDF.select("DATA_TYPE").map(x => x.getString(0)).collect.toList
 
-    val primaryColumn = desDF.filter($"IS_NULLABLE" === "NO").select("COLUMN_NAME").map(x => x.getString(0)).collect.toList.head
+    val primaryColumn = desDF.filter($"IS_NULLABLE" === "NO").select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
+      .filter(x => x.toLowerCase().contains("id") || x.toLowerCase().contains("name"))
+      .head
 
     val adaptedTypes = adaptTypes(types)
 

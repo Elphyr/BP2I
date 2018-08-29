@@ -105,10 +105,9 @@ object MiscFunctions {
   def checkForUpdates(dataFrame: DataFrame, primaryColumn: String): DataFrame = {
     import spark.sqlContext.implicits._
 
-    val filteredDF = dataFrame.orderBy($"Nature_Action".desc)
+    val filteredDF = dataFrame.orderBy($"Nature_Action".desc_nulls_last)
         .dropDuplicates(primaryColumn)
         .drop("Nature_Action")
-        .withColumn("Nature_Action", lit("I"))
 
     filteredDF
   }
