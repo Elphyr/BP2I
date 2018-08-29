@@ -93,6 +93,27 @@ object HiveFunctions {
   }
 
   /**
+    * Goal: remove the now-useless column 'Nature_Action' and write the dataframe into the main one.
+    * @param dataFrame
+    * @param tableName
+    * @param columnsAndTypes
+    */
+  def dropNatureAction(dataFrame: DataFrame, tableName: String, columnsAndTypes: List[String]): Unit = {
+
+    val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
+
+    val finalDF = dataFrame.drop("Nature_Action")
+
+    val internalTableQuery = s"CREATE TABLE IF NOT EXISTS $tableName (" +
+      s"${columnsAndTypesWONatureAction.mkString(", ")}) " +
+      s"STORED AS PARQUET"
+
+    spark.sql(internalTableQuery)
+
+    finalDF.write.insertInto(s"$tableName")
+  }
+
+  /**
     * Goal: when you add informations into a table, it checks if there are new columns and then merge both tables.
     * The past records without the new column have a 'null' put into the columns.
     * @param tableName
@@ -113,11 +134,14 @@ object HiveFunctions {
     val filterDeletedLinesNewTableDF = checkForDeletes(newTableDF, primaryColumn)
 
     val filteredNewTableDF = checkForUpdates(filterDeletedLinesNewTableDF, primaryColumn)
+        .drop("Nature_Action")
 
     filteredNewTableDF.write.parquet(s"$tmpDir")
 
+    val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
+
     val externalTableQuery = s"CREATE EXTERNAL TABLE ${tableName}_tmp (" +
-      s"${columnsAndTypes.mkString(", ")}) " +
+      s"${columnsAndTypesWONatureAction.mkString(", ")}) " +
       s"STORED AS PARQUET " +
       s"LOCATION '$tmpDir'"
 
@@ -126,14 +150,14 @@ object HiveFunctions {
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
     val internalTableQuery = s"CREATE TABLE $tableName (" +
-      s"${columnsAndTypes.mkString(", ")}) " +
+      s"${columnsAndTypesWONatureAction.mkString(", ")}) " +
       s"STORED AS PARQUET"
 
     spark.sql(internalTableQuery)
 
-    spark.catalog.refreshTable(s"$tableName")
+    spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM ${tableName}_tmp")
 
-    val finalTableDF = spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM ${tableName}_tmp")
+    val finalTableDF = spark.sql(s"SELECT * FROM $tableName")
 
     spark.sql(s"DROP TABLE IF EXISTS ${tableName}_tmp")
 
