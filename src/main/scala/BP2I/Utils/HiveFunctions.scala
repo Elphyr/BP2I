@@ -74,8 +74,6 @@ object HiveFunctions {
       s"$format " +
       s"LOCATION '$dataDirPath' "
 
-    //*.dat
-
     spark.sql(externalTableQuery)
   }
 
@@ -175,13 +173,8 @@ object HiveFunctions {
 
     val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
 
-    spark.sql("SHOW TABLES").show(false)
-
-
     createExternalTable(tableName + "_tmp", columnsAndTypesWONatureAction, tmpDir, "parquet")
-
-    spark.sql(s"SELECT * FROM ${tableName}_tmp").show()
-
+    
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
     createInternalTable(tableName, tableName + "_tmp", columnsAndTypesWONatureAction, "parquet")
