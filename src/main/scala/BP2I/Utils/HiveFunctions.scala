@@ -21,7 +21,6 @@ object HiveFunctions {
       .csv(desPath)
 
     val tableName = getFileName(desDF, ".des")
-    logger.warn("Step 2: this is the core component of the name of the tables created: " + "\n" + tableName)
 
     val columns = desDF.select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
 
@@ -40,7 +39,7 @@ object HiveFunctions {
     }
 
     val orderedColumnsAndTypes = columnsAndTypes.reverse
-    logger.warn("Step 2: this is the Hive query used : " + "\n" + orderedColumnsAndTypes.mkString(", "))
+    logger.warn("Step 2: this is the columns and types red from the file: " + "\n" + orderedColumnsAndTypes.mkString(", "))
 
     (tableName, primaryColumn, orderedColumnsAndTypes)
   }
@@ -49,16 +48,33 @@ object HiveFunctions {
     * Goal: create an external table that loads the data in the right directory.
     * @param tableName
     * @param columnsAndTypes
+    * @param dataDirPath
+    * @param dataFormat
     * @return
     */
-  def createExternalTableQuery(tableName: String, columnsAndTypes: List[String], dataDirPath: String): DataFrame = {
+  def createExternalTable(tableName: String, columnsAndTypes: List[String], dataDirPath: String, dataFormat: String = "csv"): DataFrame = {
 
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
+    val format = dataFormat.toLowerCase() match {
+
+      case "parquet" => "STORED AS PARQUET"
+
+      case "orc" => "STORED AS ORC"
+
+      case "csv" => "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
+
+      case _ => logger.warn("Format must be either 'csv', 'parquet' or 'orc', chose 'csv' by default")
+
+        "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
+    }
+
     val externalTableQuery = s"CREATE EXTERNAL TABLE $tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
-      s"ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE " +
-      s"LOCATION '$dataDirPath*.dat' "
+      s"$format " +
+      s"LOCATION '$dataDirPath' "
+
+    //*.dat
 
     spark.sql(externalTableQuery)
   }
@@ -66,20 +82,35 @@ object HiveFunctions {
   /**
     * Goal: create an internal table that matches the data loaded in the external table.
     * @param tableName
+    * @param extTableName
     * @param columnsAndTypes
+    * @param dataFormat
     * @return
     */
-  def createInternalTableQuery(tableName: String, columnsAndTypes: List[String]): DataFrame = {
+  def createInternalTable(tableName: String, extTableName: String, columnsAndTypes: List[String], dataFormat: String = "csv"): DataFrame = {
 
-    spark.sql(s"DROP TABLE IF EXISTS ${tableName}_int")
+    spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
-    val internalTableQuery = s"CREATE TABLE ${tableName}_int (" +
+    val format = dataFormat.toLowerCase() match {
+
+      case "parquet" => "STORED AS PARQUET"
+
+      case "orc" => "STORED AS ORC"
+
+      case "csv" => "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
+
+      case _ => logger.warn("Format must be either 'csv', 'parquet' or 'orc', chose 'csv' by default")
+
+        "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
+    }
+
+    val internalTableQuery = s"CREATE TABLE $tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
-      s"STORED AS PARQUET"
+      s"$format"
 
     spark.sql(internalTableQuery)
 
-    spark.sql(s"INSERT OVERWRITE TABLE ${tableName}_int SELECT * FROM $tableName")
+    spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM $extTableName")
   }
 
   /**
@@ -144,20 +175,16 @@ object HiveFunctions {
 
     val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
 
-    val externalTableQuery = s"CREATE EXTERNAL TABLE ${tableName}_tmp (" +
-      s"${columnsAndTypesWONatureAction.mkString(", ")}) " +
-      s"STORED AS PARQUET " +
-      s"LOCATION '$tmpDir'"
+    spark.sql("SHOW TABLES").show(false)
 
-    spark.sql(externalTableQuery)
+
+    createExternalTable(tableName + "_tmp", columnsAndTypesWONatureAction, tmpDir, "parquet")
+
+    spark.sql(s"SELECT * FROM ${tableName}_tmp").show()
 
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
-    val internalTableQuery = s"CREATE TABLE $tableName (" +
-      s"${columnsAndTypesWONatureAction.mkString(", ")}) " +
-      s"STORED AS PARQUET"
-
-    spark.sql(internalTableQuery)
+    createInternalTable(tableName, tableName + "_tmp", columnsAndTypesWONatureAction, "parquet")
 
     spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM ${tableName}_tmp")
 
