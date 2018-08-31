@@ -1,6 +1,6 @@
 package BP2I.Utils
 
-import BP2I.Utils.Param.{spark, logger}
+import BP2I.Utils.Param.{logger, spark}
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.functions.{input_file_name, _}
 import org.apache.spark.sql.{Column, DataFrame, Dataset, Row}
@@ -127,7 +127,6 @@ object MiscFunctions {
     if(hadoopFileSystem.exists(new Path(path)))
       hadoopFileSystem.delete(new Path(path), true)
   }
-
 
   /**
     * Goal: write a complete report on what happened.
