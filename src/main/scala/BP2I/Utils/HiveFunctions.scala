@@ -153,13 +153,15 @@ object HiveFunctions {
     * @param newDataTable
     * @param columnsAndTypes
     */
-  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): DataFrame = {
+  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame, DataFrame) = {
 
     val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
 
     deleteTmpDirectory(tmpDir)
 
     val currentTableDF = spark.sql(s"SELECT * FROM $tableName")
+
+    val toto = currentTableDF.persist()
 
     val newTableDF = unionDifferentTables(currentTableDF, newDataTable)
       .distinct()
@@ -174,7 +176,7 @@ object HiveFunctions {
     val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
 
     createExternalTable(tableName + "_tmp", columnsAndTypesWONatureAction, tmpDir, "parquet")
-    
+
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
     createInternalTable(tableName, tableName + "_tmp", columnsAndTypesWONatureAction, "parquet")
@@ -187,6 +189,6 @@ object HiveFunctions {
 
     deleteTmpDirectory(tmpDir)
 
-    finalTableDF
+    (toto, newDataTable, finalTableDF)
   }
 }
