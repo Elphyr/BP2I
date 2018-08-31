@@ -95,6 +95,13 @@
             <version>2.2.6</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.holdenkarau</groupId>
+            <artifactId>spark-testing-base_2.11</artifactId>
+            <version>2.1.0_0.10.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
