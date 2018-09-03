@@ -1,4 +1,3 @@
-208EAC84452174489D1E79325113705B,,MAC AFEE,0,Initial load from AssetDB,1000011,,,,,pdm_load,1518612586,pdm_load,,,0,1518612586,,,,,0,00000000002ACF90,,,0,0,0,0,,,,0,,,
 2E57532EB802704DBB4D81C0EFBE92C7,,GTIE Netcom,0,Initial load from AssetDB,1000014,,,,,pdm_load,1518691112,pdm_load,,,0,1518691112,,,,,0,00000000002AD1E7,,,0,0,0,0,,,,0,,,
 company_uuid,parent_company_uuid,company_name,,description,,alias,,web_address,bbs,creation_user,,last_update_user,location_uuid,primary_contact_uuid,,,,,authentication_user_name,authentication_password,,auto_rep_version,domain_uuid,tenant,,,,,,,,,duplicate_with_uuid,,the_new_column
 03922457EA33FB488D18F8DE21332F99,,BLUE CAT NETWORKS,0,Initial load from AssetDB,1000011,,,,,pdm_load,1518612583,pdm_load,,,0,1518612583,,,,,0,00000000002ACF48,,,0,0,0,0,,,,0,,,

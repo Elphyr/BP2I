@@ -140,7 +140,8 @@ object MiscFunctions {
     logger.warn("*** FINAL REPORT 1: WHAT WAS BEFORE ***")
     println("AMOUNT OF LINES = " + oldTableDF.count)
 
-  println("OLD SCHEMA = " + "\n" + oldTableDF.printSchema())
+    println("OLD SCHEMA = ")
+    oldTableDF.printSchema()
 
     logger.warn("*** FINAL REPORT 2: WHAT WAS ADDED ***")
     println("AMOUNT OF LINES = " + addedTableDF.count)
