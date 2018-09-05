@@ -3,7 +3,7 @@ package BP2I.Utils
 import BP2I.Utils.Param.{logger, spark}
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.functions.{input_file_name, _}
-import org.apache.spark.sql.{Column, DataFrame, Dataset, Row}
+import org.apache.spark.sql.{Column, DataFrame}
 
 object MiscFunctions {
 
@@ -82,12 +82,12 @@ object MiscFunctions {
   }
 
   /**
-    * Goal: if a table with 'Nature_Action' == 'D', is uploaded, check for all lines with the same primary column and delete them.
+    * Goal: if a table with 'Nature_Action' == 'D' is uploaded, check for all lines with the same primary column and delete them.
     * @param dataFrame
     * @param primaryColumn
     * @return
     */
-  def checkForDeletes(dataFrame: DataFrame, primaryColumn: String): Dataset[Row] = {
+  def checkForDeletes(dataFrame: DataFrame, primaryColumn: String): DataFrame = {
     import spark.sqlContext.implicits._
 
     val linesToDelete = dataFrame.filter($"Nature_Action" === "D")
