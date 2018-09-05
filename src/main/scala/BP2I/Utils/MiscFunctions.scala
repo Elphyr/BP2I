@@ -47,7 +47,7 @@ object MiscFunctions {
     */
   def splitFullFileName(fullFileName: String): Seq[String] = {
 
-    val splitFileName = fullFileName.split("_[0-9]")
+    val splitFileName = fullFileName.split("_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]")
 
     splitFileName
   }
