@@ -161,7 +161,7 @@ object HiveFunctions {
 
     val currentTableDF = spark.sql(s"SELECT * FROM $tableName")
 
-    val toto = currentTableDF.persist()
+    val persistedCurrentTable = currentTableDF.persist()
 
     val newTableDF = unionDifferentTables(currentTableDF, newDataTable)
       .distinct()
@@ -189,6 +189,6 @@ object HiveFunctions {
 
     deleteTmpDirectory(tmpDir)
 
-    (toto, newDataTable, finalTableDF)
+    (persistedCurrentTable, newDataTable, finalTableDF)
   }
 }
