@@ -32,7 +32,7 @@ object HiveFunctions {
 
     val adaptedTypes = adaptTypes(types)
 
-    var columnsAndTypes = List[String]("Nature_Action CHAR")
+    var columnsAndTypes = List[String]("Nature_Action STRING")
     for (x <- 0 until desDF.count().toInt) {
 
       columnsAndTypes ::= columns(x) + " " + adaptedTypes(x)
