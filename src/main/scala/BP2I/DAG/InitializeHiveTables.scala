@@ -37,8 +37,11 @@ object InitializeHiveTables {
       logger.warn(s"Step 5: table with same name found, updating table named: $tableName")
       val (oldTableDF, addedTableDF, newTableDF) = feedNewDataIntoTable(tableName, newDataTableDF, primaryColumn, hiveQuery)
 
-      writeReport(oldTableDF, addedTableDF, newTableDF)
+      //writeReport(oldTableDF, addedTableDF, newTableDF)
 
+      spark.sql("SHOW TABLES").show(100, false)
+      spark.sql("SHOW TABLES").count()
+      
     } else {
 
       logger.warn(s"Step 5: no table with the same name found, creating new table as '$tableName'")

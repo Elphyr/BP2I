@@ -120,7 +120,7 @@ object HiveFunctions {
     */
   def adaptTypes(types: List[String]): List[String] = {
 
-    types.map { case "nvarchar" => "VARCHAR" ;  case "binary" => "STRING" ; case "timestamp" => "STRING" ; case "ntext" => "STRING" ; case x => x.toUpperCase }
+    types.map { case "nvarchar" => "STRING" ;  case "binary" => "STRING" ; case "timestamp" => "STRING" ; case "ntext" => "STRING" ; case x => x.toUpperCase }
   }
 
   /**
@@ -155,7 +155,9 @@ object HiveFunctions {
     */
   def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame, DataFrame) = {
 
-    val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
+    //val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
+    //val tmpDir = "/home/lc61470/tmp/tmp_newTable"
+    val tmpDir = "/user/lc61470/tmp/tmp_newTable"
 
     deleteTmpDirectory(tmpDir)
 
