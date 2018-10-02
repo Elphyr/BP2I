@@ -88,6 +88,9 @@ target/
 
 # Hive metastore #
 
+job_reporting/
+
+
 metastore_db/
 spark-warehouse/
 output_temp/
