@@ -1,22 +1,21 @@
 package BP2I.DAG
 
-import BP2I.Utils.Arguments
 import BP2I.Utils.HiveFunctions._
 import BP2I.Utils.MiscFunctions.{splitFullFileName, writeReport}
 import BP2I.Utils.Param.{logger, spark}
 
 object InitializeHiveTables {
 
-  def main(args: Array[String]): Unit = {
+  def main(args: String): Unit = {
 
     spark.sparkContext.setLogLevel("WARN")
 
     logger.warn("===> INITIALIZING HIVE TABLES <===")
 
-    val dataDir = Arguments(args).folder.get
+    val dataDir = args
 
     logger.warn("Step 1: initializing table name and .des path")
-    val desPath = dataDir + "*.des"
+    val desPath = dataDir + "/*.des"
     logger.warn("Step 1: files red: " + "\n" + s"$desPath")
 
     logger.warn("Step 2: read the .des file and create Hive query accordingly")
@@ -45,6 +44,5 @@ object InitializeHiveTables {
 
       writeReport(newDataTableDF, newDataTableDF, tableName)
     }
-
   }
 }

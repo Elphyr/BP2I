@@ -1,11 +1,27 @@
 package BP2I.Utils
 
+import java.io.File
+
 import BP2I.Utils.Param.{logger, spark}
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.sql.functions.{input_file_name, _}
 import org.apache.spark.sql.{Column, DataFrame}
 
 object MiscFunctions {
+
+  /**
+    * Goal: get the list of directories with data we are going to put into the datalake.
+    * @param dir
+    * @return
+    */
+  def getListOfDirectories(dir: String): Seq[String] = {
+
+    val directory = new File(dir)
+
+    val listOfDirectories = directory.listFiles.filter(_.isDirectory).toSeq.map(_.toString)
+
+  listOfDirectories
+  }
 
   /**
     * Spark 2.1 keeps the header whatever we do, we need to remove it.
@@ -163,7 +179,7 @@ object MiscFunctions {
 
     finalReportTransposed.show(false)
 
-    finalReportTransposed.coalesce(1).write.mode("overwrite").option("header", "true").format("csv").save(s"${tableName}_report.csv")
+    finalReportTransposed.coalesce(1).write.mode("overwrite").option("header", "true").format("csv").save(s"./job_reporting/$tableName")
   }
 
   /**
@@ -180,6 +196,8 @@ object MiscFunctions {
     val rows = numericDataFrame.collect.map(_.toSeq.toArray).head.toSeq.map(_.toString)
 
     val transposedDataFrame = spark.createDataFrame(spark.sparkContext.parallelize(columns.zip(rows)))
+        .withColumnRenamed("_1", "columnName")
+        .withColumnRenamed("_2", "amountOfItems")
 
     transposedDataFrame
   }
