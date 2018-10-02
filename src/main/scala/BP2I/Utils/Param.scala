@@ -11,7 +11,7 @@ object Param {
 
   val spark: SparkSession = SparkSession.builder
     .master("local")
-    .appName("Spark BP2I example")
+    .appName("BP2I DL Integration")
     .config("hive.metastore.warehouse.dir", warehouseLocation)
     .config("spark.sql.warehouse.dir", warehouseLocation)
     .enableHiveSupport()

@@ -35,21 +35,16 @@ object InitializeHiveTables {
     if (spark.catalog.tableExists(s"$tableName")) {
 
       logger.warn(s"Step 5: table with same name found, updating table named: $tableName")
-      val (oldTableDF, addedTableDF, newTableDF) = feedNewDataIntoTable(tableName, newDataTableDF, primaryColumn, hiveQuery)
+      val (addedTableDF, newTableDF) = feedNewDataIntoTable(tableName, newDataTableDF, primaryColumn, hiveQuery)
 
-      //writeReport(oldTableDF, addedTableDF, newTableDF)
-
-      spark.sql("SHOW TABLES").show(100, false)
-      spark.sql("SHOW TABLES").count()
-      
+      writeReport(addedTableDF, newTableDF, tableName)
     } else {
 
       logger.warn(s"Step 5: no table with the same name found, creating new table as '$tableName'")
       dropNatureAction(newDataTableDF, tableName, hiveQuery)
 
-      spark.sql("SHOW TABLES").show(100, false)
-      spark.sql("SHOW TABLES").count()
-
+      writeReport(newDataTableDF, newDataTableDF, tableName)
     }
+
   }
 }

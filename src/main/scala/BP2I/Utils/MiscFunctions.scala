@@ -134,14 +134,14 @@ object MiscFunctions {
     * 2. What was added: amount of lines, schema. Amount of Insert, Update and Delete.
     * 3. What is now: amount of lines, schema.
     */
-  def writeReport(oldTableDF: DataFrame, addedTableDF: DataFrame, newTableDF: DataFrame): Unit = {
+  def writeReport(addedTableDF: DataFrame, newTableDF: DataFrame, tableName: String): Unit = {
     import spark.sqlContext.implicits._
 
-    logger.warn("*** FINAL REPORT 1: WHAT WAS BEFORE ***")
-    println("AMOUNT OF LINES = " + oldTableDF.count)
-
-    println("OLD SCHEMA = ")
-    oldTableDF.printSchema()
+    //    logger.warn("*** FINAL REPORT 1: WHAT WAS BEFORE ***")
+    //    println("AMOUNT OF LINES = " + oldTableDF.count)
+    //
+    //    println("OLD SCHEMA = ")
+    //    oldTableDF.printSchema()
 
     logger.warn("*** FINAL REPORT 2: WHAT WAS ADDED ***")
     println("AMOUNT OF LINES = " + addedTableDF.count)
@@ -155,5 +155,32 @@ object MiscFunctions {
     println("AMOUNT OF LINES = " + newTableDF.count)
     println("NEW SCHEMA = ")
     newTableDF.printSchema()
+
+    logger.warn("*** FINAL REPORT 4: EMPTY COLUMNS ***")
+    val finalReport = newTableDF.describe().filter($"summary" === "count").drop("summary")
+
+    val finalReportTransposed = transposeDF(finalReport)
+
+    finalReportTransposed.show(false)
+
+    finalReportTransposed.coalesce(1).write.mode("overwrite").option("header", "true").format("csv").save(s"${tableName}_report.csv")
+  }
+
+  /**
+    * Goal: take a simple dataframe and transpose it.
+    * @param dataFrame
+    * @return
+    */
+  def transposeDF(dataFrame: DataFrame): DataFrame = {
+
+    val numericDataFrame = dataFrame
+
+    val columns = numericDataFrame.columns.toSeq
+
+    val rows = numericDataFrame.collect.map(_.toSeq.toArray).head.toSeq.map(_.toString)
+
+    val transposedDataFrame = spark.createDataFrame(spark.sparkContext.parallelize(columns.zip(rows)))
+
+    transposedDataFrame
   }
 }

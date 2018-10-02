@@ -153,17 +153,16 @@ object HiveFunctions {
     * @param newDataTable
     * @param columnsAndTypes
     */
-  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame, DataFrame) = {
 
-    //val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
+  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame) = {
+
+    val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
     //val tmpDir = "/home/lc61470/tmp/tmp_newTable"
-    val tmpDir = "/user/lc61470/tmp/tmp_newTable"
+    //val tmpDir = "/user/lc61470/tmp/tmp_newTable"
 
     deleteTmpDirectory(tmpDir)
 
     val currentTableDF = spark.sql(s"SELECT * FROM $tableName")
-
-    val persistedCurrentTable = currentTableDF.persist()
 
     val newTableDF = unionDifferentTables(currentTableDF, newDataTable)
       .distinct()
@@ -171,7 +170,7 @@ object HiveFunctions {
     val filterDeletedLinesNewTableDF = checkForDeletes(newTableDF, primaryColumn)
 
     val filteredNewTableDF = checkForUpdates(filterDeletedLinesNewTableDF, primaryColumn)
-        .drop("Nature_Action")
+      .drop("Nature_Action")
 
     filteredNewTableDF.write.parquet(s"$tmpDir")
 
@@ -191,6 +190,8 @@ object HiveFunctions {
 
     deleteTmpDirectory(tmpDir)
 
-    (persistedCurrentTable, newDataTable, finalTableDF)
+    (newDataTable, finalTableDF)
   }
+
+
 }
