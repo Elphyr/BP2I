@@ -3,7 +3,7 @@ package BP2I.Utils
 import java.io.File
 
 import BP2I.Utils.Param.{logger, spark}
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.{FileStatus, FileSystem, Path}
 import org.apache.spark.sql.functions.{input_file_name, _}
 import org.apache.spark.sql.{Column, DataFrame}
 
@@ -16,11 +16,31 @@ object MiscFunctions {
     */
   def getListOfDirectories(dir: String): Seq[String] = {
 
-    val directory = new File(dir)
+    val fileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
 
-    val listOfDirectories = directory.listFiles.filter(_.isDirectory).toSeq.map(_.toString)
+    val directories: Array[FileStatus] = fileSystem.listStatus(new Path(dir))
+
+    val filteredDirectories = directories.filter(datFileExists)
+
+    val listOfDirectories = filteredDirectories.filter(_.isDirectory).toSeq.map(_.getPath.toString)
 
   listOfDirectories
+  }
+
+  /**
+    * Goal: check whether .dat file exist in the HDFS directory or not.
+    * @param directory
+    * @return
+    */
+  def datFileExists(directory: FileStatus): Boolean = {
+
+    val fileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
+
+    val datFilePath = new Path(directory.getPath.toString ++ "/*.dat")
+
+    val globFilePath = fileSystem.globStatus(datFilePath).map(_.getPath)
+
+    if (globFilePath.length >= 1) { true } else { false }
   }
 
   /**
@@ -173,7 +193,15 @@ object MiscFunctions {
     newTableDF.printSchema()
 
     logger.warn("*** FINAL REPORT 4: EMPTY COLUMNS ***")
-    val finalReport = newTableDF.describe().filter($"summary" === "count").drop("summary")
+
+    val finalReport = if (newTableDF.columns.contains("summary")) {
+
+      newTableDF
+        .withColumnRenamed("summary", "summary_tmp")
+        .describe().filter($"summary" === "count").drop("summary")
+        .withColumnRenamed("summary_tmp", "summary")
+
+    } else newTableDF.describe().filter($"summary" === "count").drop("summary")
 
     val finalReportTransposed = transposeDF(finalReport)
 

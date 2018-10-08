@@ -32,7 +32,7 @@ object HiveFunctions {
 
     val adaptedTypes = adaptTypes(types)
 
-    var columnsAndTypes = List[String]("Nature_Action STRING")
+    var columnsAndTypes = List[String]()//("Nature_Action STRING")
     for (x <- 0 until desDF.count().toInt) {
 
       columnsAndTypes ::= columns(x) + " " + adaptedTypes(x)
@@ -120,7 +120,9 @@ object HiveFunctions {
     */
   def adaptTypes(types: List[String]): List[String] = {
 
-    types.map { case "nvarchar" => "STRING" ;  case "binary" => "STRING" ; case "timestamp" => "STRING" ; case "ntext" => "STRING" ; case x => x.toUpperCase }
+    types.map { case "nvarchar" => "STRING" ; case "varchar" => "STRING" ; case "char" => "STRING" ; case "nchar" => "STRING" ;
+    case "binary" => "STRING" ; case "timestamp" => "STRING" ; case "datetime" => "STRING" ; case "ntext" => "STRING" ;
+    case "image" => "STRING" ; case "money" => "DOUBLE" ; case x => x.toUpperCase }
   }
 
   /**
@@ -192,6 +194,4 @@ object HiveFunctions {
 
     (newDataTable, finalTableDF)
   }
-
-
 }

@@ -22,7 +22,7 @@ object InitializeHiveTables {
     val (newDataTableName, primaryColumn, hiveQuery) = readDesFile(desPath)
 
     logger.warn("Step 3: creating external table")
-    createExternalTable(newDataTableName, hiveQuery, dataDir + "*.dat")
+    createExternalTable(newDataTableName, hiveQuery, dataDir + "/*.dat")
 
     logger.warn("Step 4: creating internal table")
     createInternalTable(newDataTableName + "_int", newDataTableName, hiveQuery)

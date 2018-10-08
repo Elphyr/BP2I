@@ -1,10 +1,8 @@
 package BP2I.DAG
 
-import java.io.File
-
 import BP2I.Utils.Arguments
-import BP2I.Utils.Param.{logger, spark}
 import BP2I.Utils.MiscFunctions.getListOfDirectories
+import BP2I.Utils.Param.{logger, spark}
 
 object DataLakeIntegration {
 
@@ -16,12 +14,9 @@ object DataLakeIntegration {
 
     if (argument.parentFolder.isDefined) {
 
-
       val listofdirectories = getListOfDirectories(argument.parentFolder.get)
 
-
       listofdirectories.foreach(InitializeHiveTables.main)
-
 
     } else if (argument.folder.isDefined) {
 
