@@ -69,9 +69,29 @@ object MiscFunctions {
     val fileName = dataFrame
       .select(input_file_name()).map(x => x.getString(0)).collect().toList.last
       .split("/").last
+      .replaceAll("-", "")
       .replaceAll(extension, "")
 
     fileName
+  }
+
+  /**
+    * Goal: from a dataframe's file name, extract
+    * [APPLICATION]_[TABLE]_[DATE]_[HOUR]_[VERSION]
+    * @param dataFrame
+    * @param extension
+    * @return
+    */
+  def getFileInformations(dataFrame: DataFrame, extension: String): Seq[String] = {
+    import spark.sqlContext.implicits._
+
+    val fullFileName = dataFrame
+      .select(input_file_name()).map(x => x.getString(0)).collect().toList.last
+      .split("/").last
+      .replaceAll(extension, "")
+      .split("_")
+
+    Seq(fullFileName.head, fullFileName(1), fullFileName(2), fullFileName(3), fullFileName.last)
   }
 
   /**
@@ -203,7 +223,7 @@ object MiscFunctions {
 
     } else newTableDF.describe().filter($"summary" === "count").drop("summary")
 
-    val finalReportTransposed = transposeDF(finalReport)
+    val finalReportTransposed = transposeDF(finalReport, tableName)
 
     finalReportTransposed.show(false)
 
@@ -215,7 +235,7 @@ object MiscFunctions {
     * @param dataFrame
     * @return
     */
-  def transposeDF(dataFrame: DataFrame): DataFrame = {
+  def transposeDF(dataFrame: DataFrame, tableName: String): DataFrame = {
 
     val numericDataFrame = dataFrame
 
@@ -224,8 +244,9 @@ object MiscFunctions {
     val rows = numericDataFrame.collect.map(_.toSeq.toArray).head.toSeq.map(_.toString)
 
     val transposedDataFrame = spark.createDataFrame(spark.sparkContext.parallelize(columns.zip(rows)))
-        .withColumnRenamed("_1", "columnName")
-        .withColumnRenamed("_2", "amountOfItems")
+      .withColumn("tableName", lit(tableName))
+      .withColumnRenamed("_1", "columnName")
+      .withColumnRenamed("_2", "amountOfItems")
 
     transposedDataFrame
   }

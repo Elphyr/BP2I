@@ -12,7 +12,7 @@ object HiveFunctions {
     * @param desPath
     * @return
     */
-  def readDesFile(desPath: String): (String, String, List[String]) = {
+  def readDesFile(desPath: String): (Seq[String], String, List[String]) = {
   import spark.sqlContext.implicits._
 
     val desDF = spark.read
@@ -20,7 +20,7 @@ object HiveFunctions {
       .option("delimiter", ";")
       .csv(desPath)
 
-    val tableName = getFileName(desDF, ".des")
+    val tableInformations = getFileInformations(desDF, ".des")
 
     val columns = desDF.select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
 
@@ -32,7 +32,7 @@ object HiveFunctions {
 
     val adaptedTypes = adaptTypes(types)
 
-    var columnsAndTypes = List[String]()//("Nature_Action STRING")
+    var columnsAndTypes = List[String]()
     for (x <- 0 until desDF.count().toInt) {
 
       columnsAndTypes ::= columns(x) + " " + adaptedTypes(x)
@@ -41,7 +41,7 @@ object HiveFunctions {
     val orderedColumnsAndTypes = columnsAndTypes.reverse
     logger.warn("Step 2: this is the columns and types red from the file: " + "\n" + orderedColumnsAndTypes.mkString(", "))
 
-    (tableName, primaryColumn, orderedColumnsAndTypes)
+    (tableInformations, primaryColumn, orderedColumnsAndTypes)
   }
 
   /**
@@ -52,9 +52,9 @@ object HiveFunctions {
     * @param dataFormat
     * @return
     */
-  def createExternalTable(tableName: String, columnsAndTypes: List[String], dataDirPath: String, dataFormat: String = "csv"): DataFrame = {
+  def createExternalTable(tableApplication: String, tableName: String, columnsAndTypes: List[String], dataDirPath: String, dataFormat: String = "csv"): DataFrame = {
 
-    spark.sql(s"DROP TABLE IF EXISTS $tableName")
+    spark.sql(s"DROP TABLE IF EXISTS $tableApplication.$tableName")
 
     val format = dataFormat.toLowerCase() match {
 
@@ -69,7 +69,7 @@ object HiveFunctions {
         "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
     }
 
-    val externalTableQuery = s"CREATE EXTERNAL TABLE $tableName (" +
+    val externalTableQuery = s"CREATE EXTERNAL TABLE $tableApplication.$tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
       s"$format " +
       s"LOCATION '$dataDirPath' "
@@ -85,9 +85,9 @@ object HiveFunctions {
     * @param dataFormat
     * @return
     */
-  def createInternalTable(tableName: String, extTableName: String, columnsAndTypes: List[String], dataFormat: String = "csv"): DataFrame = {
+  def createInternalTable(tableApplication: String, tableName: String, extTableName: String, columnsAndTypes: List[String], dataFormat: String = "csv"): DataFrame = {
 
-    spark.sql(s"DROP TABLE IF EXISTS $tableName")
+    spark.sql(s"DROP TABLE IF EXISTS $tableApplication.$tableName")
 
     val format = dataFormat.toLowerCase() match {
 
@@ -102,13 +102,13 @@ object HiveFunctions {
         "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
     }
 
-    val internalTableQuery = s"CREATE TABLE $tableName (" +
+    val internalTableQuery = s"CREATE TABLE $tableApplication.$tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
       s"$format"
 
     spark.sql(internalTableQuery)
 
-    spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM $extTableName")
+    spark.sql(s"INSERT OVERWRITE TABLE $tableApplication.$tableName SELECT * FROM $tableApplication.$extTableName")
   }
 
   /**
@@ -121,8 +121,8 @@ object HiveFunctions {
   def adaptTypes(types: List[String]): List[String] = {
 
     types.map { case "nvarchar" => "STRING" ; case "varchar" => "STRING" ; case "char" => "STRING" ; case "nchar" => "STRING" ;
-    case "binary" => "STRING" ; case "timestamp" => "STRING" ; case "datetime" => "STRING" ; case "ntext" => "STRING" ;
-    case "image" => "STRING" ; case "money" => "DOUBLE" ; case x => x.toUpperCase }
+    case "binary" => "STRING" ; case "varbinary" => "STRING" ; case "timestamp" => "STRING" ; case "datetime" => "STRING" ;
+    case "ntext" => "STRING"; case "image" => "STRING" ; case "money" => "DOUBLE" ; case x => x.toUpperCase }
   }
 
   /**
@@ -131,19 +131,19 @@ object HiveFunctions {
     * @param tableName
     * @param columnsAndTypes
     */
-  def dropNatureAction(dataFrame: DataFrame, tableName: String, columnsAndTypes: List[String]): DataFrame = {
+  def dropNatureAction(dataFrame: DataFrame, tableApplication: String, tableName: String, columnsAndTypes: List[String]): DataFrame = {
 
     val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
 
     val finalDF = dataFrame.drop("Nature_Action")
 
-    val internalTableQuery = s"CREATE TABLE IF NOT EXISTS $tableName (" +
+    val internalTableQuery = s"CREATE TABLE IF NOT EXISTS $tableApplication.$tableName (" +
       s"${columnsAndTypesWONatureAction.mkString(", ")}) " +
       s"STORED AS PARQUET"
 
     spark.sql(internalTableQuery)
 
-    finalDF.write.insertInto(s"$tableName")
+    finalDF.write.mode("overwrite").insertInto(s"$tableApplication.$tableName")
 
     finalDF
   }
@@ -156,7 +156,7 @@ object HiveFunctions {
     * @param columnsAndTypes
     */
 
-  def feedNewDataIntoTable(tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame) = {
+  def feedNewDataIntoTable(tableApplication: String, tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame) = {
 
     val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
     //val tmpDir = "/home/lc61470/tmp/tmp_newTable"
@@ -178,11 +178,11 @@ object HiveFunctions {
 
     val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
 
-    createExternalTable(tableName + "_tmp", columnsAndTypesWONatureAction, tmpDir, "parquet")
+    createExternalTable(tableApplication, tableName + "_tmp", columnsAndTypesWONatureAction, tmpDir, "parquet")
 
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
-    createInternalTable(tableName, tableName + "_tmp", columnsAndTypesWONatureAction, "parquet")
+    createInternalTable(tableApplication, tableName, tableName + "_tmp", columnsAndTypesWONatureAction, "parquet")
 
     spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM ${tableName}_tmp")
 

@@ -20,7 +20,9 @@ class HiveFunctionsTest extends FlatSpec with DataFrameSuiteBase {
       "siia_flag INT", "fast_flag INT", "user_priority_flag INT", "employee_count INT", "desktop_count INT", "asset_count INT", "authoritative INT",
       "duplicate_with_uuid STRING", "division_id INT")
 
-    val (testFullTableName, testPrimaryColumn, testColumnsAndTypes) = readDesFile("../BP2I_Spark/src/test/resources/input/MAIN_TEST_31082018_1/*.des")
+    val (testTableInformations, testPrimaryColumn, testColumnsAndTypes) = readDesFile("../BP2I_Spark/src/test/resources/input/MAIN_TEST_31082018_1/*.des")
+
+    val testFullTableName = testTableInformations(1)
 
     assert(testFullTableName == fullTableName)
 
@@ -31,9 +33,9 @@ class HiveFunctionsTest extends FlatSpec with DataFrameSuiteBase {
 
   "An external table " should "be successfully created by" in {
 
-    val (testFullTableName, testPrimaryColumn, testColumnsAndTypes) = readDesFile("../BP2I_Spark/src/test/resources/input/MAIN_TEST_31082018_1/*.des")
+    val (testTableInformations, testPrimaryColumn, testColumnsAndTypes) = readDesFile("../BP2I_Spark/src/test/resources/input/MAIN_TEST_31082018_1/*.des")
 
-    createExternalTable("mainTestTable", testColumnsAndTypes, "/home/raphael/workspace/BP2I_Spark/src/test/resources/input/MAIN_TEST_31082018_1/*.dat")
+    createExternalTable("testTable", "mainTestTable", testColumnsAndTypes, "/home/raphael/workspace/BP2I_Spark/src/test/resources/input/MAIN_TEST_31082018_1/*.dat")
 
     val createdTable = spark.sql("SELECT * FROM mainTestTable")
 
