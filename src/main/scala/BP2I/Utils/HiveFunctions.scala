@@ -1,7 +1,7 @@
 package BP2I.Utils
 
 import BP2I.Utils.MiscFunctions._
-import BP2I.Utils.Param.{logger, spark}
+import BP2I.Utils.Param.{logger, spark, warehouseLocation}
 import org.apache.spark.sql.DataFrame
 
 
@@ -137,13 +137,18 @@ object HiveFunctions {
 
     val finalDF = dataFrame.drop("Nature_Action")
 
-    val internalTableQuery = s"CREATE TABLE IF NOT EXISTS $tableApplication.$tableName (" +
-      s"${columnsAndTypesWONatureAction.mkString(", ")}) " +
-      s"STORED AS PARQUET"
+//    val internalTableQuery = s"CREATE TABLE IF NOT EXISTS $tableApplication.$tableName (" +
+//      s"${columnsAndTypesWONatureAction.mkString(", ")}) " +
+//      s"STORED AS PARQUET LOCATION '$warehouseLocation'"
 
-    spark.sql(internalTableQuery)
+    //spark.sql(internalTableQuery)
 
-    finalDF.write.mode("overwrite").insertInto(s"$tableApplication.$tableName")
+    finalDF.createOrReplaceTempView(s"${tableName}_tmp")
+
+    spark.sql(s"DROP TABLE IF EXISTS $tableApplication.$tableName")
+    spark.sql(s"CREATE TABLE $tableApplication.$tableName AS SELECT * FROM ${tableName}_tmp")
+
+    //finalDF.write.mode("overwrite").insertInto(s"$tableApplication.$tableName")
 
     finalDF
   }
@@ -155,7 +160,6 @@ object HiveFunctions {
     * @param newDataTable
     * @param columnsAndTypes
     */
-
   def feedNewDataIntoTable(tableApplication: String, tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame) = {
 
     val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"

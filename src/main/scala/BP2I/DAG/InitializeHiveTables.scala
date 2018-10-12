@@ -1,8 +1,8 @@
 package BP2I.DAG
 
 import BP2I.Utils.HiveFunctions._
-import BP2I.Utils.MiscFunctions.{splitFullFileName, writeReport}
-import BP2I.Utils.Param.{logger, spark}
+import BP2I.Utils.MiscFunctions.writeReport
+import BP2I.Utils.Param.{logger, spark, warehouseLocation}
 
 object InitializeHiveTables {
 
@@ -22,7 +22,7 @@ object InitializeHiveTables {
     val newDataTableApplication = newDataTableInformations.head
     val newDataTableName = newDataTableInformations.takeRight(4).mkString("_").replaceAll("-", "")
 
-    spark.sql(s"CREATE DATABASE IF NOT EXISTS $newDataTableApplication")
+    spark.sql(s"CREATE DATABASE IF NOT EXISTS $newDataTableApplication LOCATION '$warehouseLocation'")
 
     logger.warn("Step 3: creating external table")
     createExternalTable(newDataTableApplication, newDataTableName, hiveQuery, args + "/*.dat")

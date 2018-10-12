@@ -8,20 +8,26 @@ object DataLakeIntegration {
 
   def main(args: Array[String]): Unit = {
 
+    val timeBegin = System.nanoTime
+
     spark.sparkContext.setLogLevel("WARN")
 
     val argument = Arguments(args)
 
     if (argument.parentFolder.isDefined) {
 
-      val listofdirectories = getListOfDirectories(argument.parentFolder.get)
+      val listOfDirectories = getListOfDirectories(argument.parentFolder.get)
 
-      listofdirectories.foreach(InitializeHiveTables.main)
+      listOfDirectories.foreach(InitializeHiveTables.main)
+
+      val jobDuration = (System.nanoTime - timeBegin) / 1e9d
+
+      logger.warn(s"===> JOB SUCCESSFUL, CLOSING AFTER $jobDuration SECONDS <===")
 
     } else if (argument.folder.isDefined) {
 
       InitializeHiveTables.main(argument.folder.get)
 
-    } else logger.warn("NO ARGUMENT!")
+    } else logger.warn("Please put an argument.")
   }
 }
