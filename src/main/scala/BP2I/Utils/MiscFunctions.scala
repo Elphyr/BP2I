@@ -193,13 +193,7 @@ object MiscFunctions {
   def writeReport(addedTableDF: DataFrame, newTableDF: DataFrame, tableName: String): Unit = {
     import spark.sqlContext.implicits._
 
-    //    logger.warn("*** FINAL REPORT 1: WHAT WAS BEFORE ***")
-    //    println("AMOUNT OF LINES = " + oldTableDF.count)
-    //
-    //    println("OLD SCHEMA = ")
-    //    oldTableDF.printSchema()
-
-    logger.warn("*** FINAL REPORT 2: WHAT WAS ADDED ***")
+    logger.warn("*** FINAL REPORT 1: WHAT WAS ADDED ***")
     println("AMOUNT OF LINES = " + addedTableDF.count)
     println("NEW SCHEMA = ")
     addedTableDF.printSchema()
@@ -207,12 +201,12 @@ object MiscFunctions {
     println("AMOUNT OF 'UPDATE' = " + addedTableDF.filter($"Nature_Action" === "U").count())
     println("AMOUNT OF 'DELETE' = " + addedTableDF.filter($"Nature_Action" === "D").count())
 
-    logger.warn("*** FINAL REPORT 3: WHAT IS NOW ***")
+    logger.warn("*** FINAL REPORT 2: WHAT IS NOW ***")
     println("AMOUNT OF LINES = " + newTableDF.count)
     println("NEW SCHEMA = ")
     newTableDF.printSchema()
 
-    logger.warn("*** FINAL REPORT 4: EMPTY COLUMNS ***")
+    logger.warn("*** FINAL REPORT 3: EMPTY COLUMNS ***")
 
     val finalReport = if (newTableDF.columns.contains("summary")) {
 

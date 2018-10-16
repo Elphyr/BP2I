@@ -137,18 +137,10 @@ object HiveFunctions {
 
     val finalDF = dataFrame.drop("Nature_Action")
 
-//    val internalTableQuery = s"CREATE TABLE IF NOT EXISTS $tableApplication.$tableName (" +
-//      s"${columnsAndTypesWONatureAction.mkString(", ")}) " +
-//      s"STORED AS PARQUET LOCATION '$warehouseLocation'"
-
-    //spark.sql(internalTableQuery)
-
     finalDF.createOrReplaceTempView(s"${tableName}_tmp")
 
     spark.sql(s"DROP TABLE IF EXISTS $tableApplication.$tableName")
     spark.sql(s"CREATE TABLE $tableApplication.$tableName AS SELECT * FROM ${tableName}_tmp")
-
-    //finalDF.write.mode("overwrite").insertInto(s"$tableApplication.$tableName")
 
     finalDF
   }
