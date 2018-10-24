@@ -95,3 +95,5 @@ metastore_db/
 spark-warehouse/
 output_temp/
 tmp_newTable/
+job_reports/
+tmp/
