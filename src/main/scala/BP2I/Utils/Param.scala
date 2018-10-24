@@ -9,7 +9,7 @@ object Param {
 
   val warehouseLocation: String = new File("spark-warehouse").getAbsolutePath
 
-  val spark: SparkSession = SparkSession.builder
+  val spark = SparkSession.builder
     .master("local")
     .appName("BP2I DL Integration")
     .config("hive.metastore.warehouse.dir", warehouseLocation)

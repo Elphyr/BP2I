@@ -1,112 +1,12 @@
 package BP2I.Utils
 
-import java.io.File
-
+import BP2I.Utils.FileFunctions.deleteTmpDirectory
 import BP2I.Utils.Param.{logger, spark}
-import org.apache.hadoop.fs.{FileStatus, FileSystem, Path}
-import org.apache.spark.sql.functions.{input_file_name, _}
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Column, DataFrame}
 
 object MiscFunctions {
-
-  /**
-    * Goal: get the list of directories with data we are going to put into the datalake.
-    * @param dir
-    * @return
-    */
-  def getListOfDirectories(dir: String): Seq[String] = {
-
-    val fileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
-
-    val directories: Array[FileStatus] = fileSystem.listStatus(new Path(dir))
-
-    val filteredDirectories = directories.filter(datFileExists)
-
-    val listOfDirectories = filteredDirectories.filter(_.isDirectory).toSeq.map(_.getPath.toString)
-
-  listOfDirectories
-  }
-
-  /**
-    * Goal: check whether .dat file exist in the HDFS directory or not.
-    * @param directory
-    * @return
-    */
-  def datFileExists(directory: FileStatus): Boolean = {
-
-    val fileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
-
-    val datFilePath = new Path(directory.getPath.toString ++ "/*.dat")
-
-    val globFilePath = fileSystem.globStatus(datFilePath).map(_.getPath)
-
-    if (globFilePath.length >= 1) { true } else { false }
-  }
-
-  /**
-    * Spark 2.1 keeps the header whatever we do, we need to remove it.
-    * @param sqlDF
-    * @return
-    */
-  def removeHeader(sqlDF: DataFrame): DataFrame = {
-
-    val header = sqlDF.first()
-
-    val sqlDFWOHeader = sqlDF.filter(row => row != header)
-
-    sqlDFWOHeader
-  }
-
-  /**
-    * Goal: get the file name from the whole path and remove the extension (.des, .dat, etc.).
-    * @param dataFrame
-    * @param extension
-    * @return
-    */
-  def getFileName(dataFrame: DataFrame, extension: String): String = {
-  import spark.sqlContext.implicits._
-
-    val fileName = dataFrame
-      .select(input_file_name()).map(x => x.getString(0)).collect().toList.last
-      .split("/").last
-      .replaceAll("-", "")
-      .replaceAll(extension, "")
-
-    fileName
-  }
-
-  /**
-    * Goal: from a dataframe's file name, extract
-    * [APPLICATION]_[TABLE]_[DATE]_[HOUR]_[VERSION]
-    * @param dataFrame
-    * @param extension
-    * @return
-    */
-  def getFileInformations(dataFrame: DataFrame, extension: String): Seq[String] = {
-    import spark.sqlContext.implicits._
-
-    val fullFileName = dataFrame
-      .select(input_file_name()).map(x => x.getString(0)).collect().toList.last
-      .split("/").last
-      .replaceAll(extension, "")
-      .split("_")
-
-    Seq(fullFileName.head, fullFileName(1), fullFileName(2), fullFileName(3), fullFileName.last)
-  }
-
-  /**
-    * Goal: split the full file name to get the true name of the table.
-    * Full file name: Application_Table_Date_Heure_Version
-    * Example: REFTEC_CA_COMPANY_02082018_1 => REFTEC_CA_COMPANY (main table) + 02082018 (date) + 1 (version)
-    * @param fullFileName
-    * @return
-    */
-  def splitFullFileName(fullFileName: String): Seq[String] = {
-
-    val splitFileName = fullFileName.split("_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]")
-
-    splitFileName
-  }
 
   /**
     * Goal: when a table is updated, we need to check weather or not there are new columns and update the schema accordingly.
@@ -171,17 +71,26 @@ object MiscFunctions {
     filteredDF
   }
 
+
   /**
-    * Goal: check if a directory exists, and delete it afterward. Works with HDFS directories.
-    * @param path
+    * Goal: take a simple dataframe and transpose it.
+    * @param dataFrame
     * @return
     */
-  def deleteTmpDirectory(path: String): AnyVal = {
+  def transposeDF(dataFrame: DataFrame, tableName: String): DataFrame = {
 
-    val hadoopFileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
+    val numericDataFrame = dataFrame
 
-    if(hadoopFileSystem.exists(new Path(path)))
-      hadoopFileSystem.delete(new Path(path), true)
+    val columns = numericDataFrame.columns.toSeq
+
+    val rows = numericDataFrame.collect.map(_.toSeq.toArray).head.toSeq.map(_.toString)
+
+    val transposedDataFrame = spark.createDataFrame(spark.sparkContext.parallelize(columns.zip(rows)))
+      .withColumn("tableName", lit(tableName))
+      .withColumnRenamed("_1", "columnName")
+      .withColumnRenamed("_2", "amountOfItems")
+
+    transposedDataFrame
   }
 
   /**
@@ -190,8 +99,37 @@ object MiscFunctions {
     * 2. What was added: amount of lines, schema. Amount of Insert, Update and Delete.
     * 3. What is now: amount of lines, schema.
     */
-  def writeReport(addedTableDF: DataFrame, newTableDF: DataFrame, tableName: String): Unit = {
+  def writeReportRawLayer(addedTableDF: DataFrame, newTableDF: DataFrame, tableName: String): Unit = {
     import spark.sqlContext.implicits._
+
+    val reportDir = s"./job_reports/report_$tableName"
+
+    deleteTmpDirectory(reportDir)
+
+    val amountOfLinesInNewFile = addedTableDF.count()
+
+    val newSchema = addedTableDF.schema.mkString("\n")
+
+    val amountOfInsert = addedTableDF.filter($"Nature_Action" === "I").count()
+    val amountOfUpdate = addedTableDF.filter($"Nature_Action" === "U").count()
+    val amountOfDelete = addedTableDF.filter($"Nature_Action" === "D").count()
+
+    val amountOfLinesNow = newTableDF.count()
+    val amountOfLinesOld = amountOfLinesNow - amountOfDelete
+
+    spark.sparkContext.parallelize(Seq(
+      s"Amount of lines in file red:         $amountOfLinesInNewFile",
+      s"Amount of Insert:                    $amountOfInsert",
+      s"Amount of Update:                    $amountOfUpdate",
+      s"Amount of Delete:                    $amountOfDelete",
+      s"Amount of lines in table previously: $amountOfLinesOld",
+      s"Amount of lines in table now:        $amountOfLinesNow",
+      s"New schema:", newSchema))
+        .coalesce(1)
+        .saveAsTextFile(reportDir)
+
+
+    logger.warn("===> WRITING REPORT <===")
 
     logger.warn("*** FINAL REPORT 1: WHAT WAS ADDED ***")
     println("AMOUNT OF LINES = " + addedTableDF.count)
@@ -224,24 +162,19 @@ object MiscFunctions {
     finalReportTransposed.coalesce(1).write.mode("overwrite").option("header", "true").format("csv").save(s"./job_reporting/$tableName")
   }
 
-  /**
-    * Goal: take a simple dataframe and transpose it.
-    * @param dataFrame
-    * @return
-    */
-  def transposeDF(dataFrame: DataFrame, tableName: String): DataFrame = {
+  def checkSchemaAppLayer(dataFrame: DataFrame, expectedSchema: StructType, appName: String): Unit = {
 
-    val numericDataFrame = dataFrame
+  val actualSchema = dataFrame.schema
 
-    val columns = numericDataFrame.columns.toSeq
+    if (actualSchema.equals(expectedSchema)) {
 
-    val rows = numericDataFrame.collect.map(_.toSeq.toArray).head.toSeq.map(_.toString)
+      logger.warn(s"===> Schema supplied for $appName does match the expected schema <===")
 
-    val transposedDataFrame = spark.createDataFrame(spark.sparkContext.parallelize(columns.zip(rows)))
-      .withColumn("tableName", lit(tableName))
-      .withColumnRenamed("_1", "columnName")
-      .withColumnRenamed("_2", "amountOfItems")
+    } else {
 
-    transposedDataFrame
+      logger.warn(s"===> Schema supplied for $appName does NOT match the expected schema: update needed <===")
+      logger.warn(s"Expected schema: ${expectedSchema.printTreeString()}")
+      logger.warn(s"Received schema: ${actualSchema.printTreeString()}")
+    }
   }
 }

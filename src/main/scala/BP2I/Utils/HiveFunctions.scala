@@ -1,7 +1,8 @@
 package BP2I.Utils
 
+import BP2I.Utils.FileFunctions.{deleteTmpDirectory, getFileInformation}
 import BP2I.Utils.MiscFunctions._
-import BP2I.Utils.Param.{logger, spark, warehouseLocation}
+import BP2I.Utils.Param.{logger, spark}
 import org.apache.spark.sql.DataFrame
 
 
@@ -20,7 +21,7 @@ object HiveFunctions {
       .option("delimiter", ";")
       .csv(desPath)
 
-    val tableInformations = getFileInformations(desDF, ".des")
+    val tableInformation = getFileInformation(desDF, ".des")
 
     val columns = desDF.select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
 
@@ -41,7 +42,7 @@ object HiveFunctions {
     val orderedColumnsAndTypes = columnsAndTypes.reverse
     logger.warn("Step 2: this is the columns and types red from the file: " + "\n" + orderedColumnsAndTypes.mkString(", "))
 
-    (tableInformations, primaryColumn, orderedColumnsAndTypes)
+    (tableInformation, primaryColumn, orderedColumnsAndTypes)
   }
 
   /**
@@ -146,7 +147,7 @@ object HiveFunctions {
   }
 
   /**
-    * Goal: when you add informations into a table, it checks if there are new columns and then merge both tables.
+    * Goal: when you add information into a table, it checks if there are new columns and then merge both tables.
     * The past records without the new column have a 'null' put into the columns.
     * @param tableName
     * @param newDataTable
