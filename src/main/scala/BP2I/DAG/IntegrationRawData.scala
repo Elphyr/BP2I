@@ -1,7 +1,7 @@
 package BP2I.DAG
 
 import BP2I.Utils.HiveFunctions._
-import BP2I.Utils.MiscFunctions.writeReportRawLayer
+import BP2I.Utils.IntegrationReport.writeReportRawLayer
 import BP2I.Utils.Param.{logger, spark, warehouseLocation}
 
 object IntegrationRawData {

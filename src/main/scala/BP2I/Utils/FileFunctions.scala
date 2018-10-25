@@ -1,6 +1,6 @@
 package BP2I.Utils
 
-import BP2I.Utils.Param.spark
+import BP2I.Utils.Param.{spark, logger}
 import org.apache.hadoop.fs.{FileStatus, FileSystem, Path}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.input_file_name
@@ -17,7 +17,7 @@ object FileFunctions {
 
     val fileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
 
-    val directories: Array[FileStatus] = fileSystem.listStatus(new Path(dir))
+    val directories = fileSystem.listStatus(new Path(dir))
 
     val filteredDirectories = directories.filter(datFileExists)
 
@@ -39,7 +39,12 @@ object FileFunctions {
 
     val globFilePath = fileSystem.globStatus(datFilePath).map(_.getPath)
 
-    if (globFilePath.length >= 1) { true } else { false }
+    if (globFilePath.length >= 1) { true } else {
+
+      logger.warn(s"==> WARNING: ${directory.getPath.toString.split("/").last} contains no or empty .dat file! <===")
+      logger.warn(s"==> WARNING : cancelling process for path: $datFilePath <===")
+
+      false }
   }
 
 

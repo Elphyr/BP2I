@@ -20,15 +20,20 @@ object HiveFunctions {
       .option("header", "true")
       .option("delimiter", ";")
       .csv(desPath)
+      .drop("IS_NULLABLE")
+    // TODO : remove it when reftec follows the specs
+
+    val desDFColumnsName = desDF.columns.head
+    val deDFColumnsType = desDF.columns(1)
 
     val tableInformation = getFileInformation(desDF, ".des")
 
-    val columns = desDF.select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
+    val columns = desDF.select(desDFColumnsName).map(x => x.getString(0)).collect.toList
 
-    val types = desDF.select("DATA_TYPE").map(x => x.getString(0)).collect.toList
+    val types = desDF.select(deDFColumnsType).map(x => x.getString(0)).collect.toList
 
-    val primaryColumn = desDF.filter($"IS_NULLABLE" === "NO").select("COLUMN_NAME").map(x => x.getString(0)).collect.toList
-      .filter(x => x.toLowerCase().contains("id") || x.toLowerCase().contains("name"))
+    val primaryColumn = desDF.select(desDFColumnsName).map(x => x.getString(0)).collect.toList
+      .filter(x => x.toLowerCase().contains("id") || x.toLowerCase().contains("name") || x.toLowerCase != "nature_action")
       .head
 
     val adaptedTypes = adaptTypes(types)
