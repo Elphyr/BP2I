@@ -2,9 +2,8 @@ package BP2I.Utils
 
 import BP2I.Utils.FileFunctions.deleteTmpDirectory
 import BP2I.Utils.MiscFunctions.transposeDF
-import BP2I.Utils.Param.{logger, spark}
+import BP2I.Utils.Param.spark
 import org.apache.spark.sql.DataFrame
-import org.joda.time.DateTime
 
 object IntegrationReport {
 
@@ -17,13 +16,15 @@ object IntegrationReport {
   def writeReportRawLayer(addedTableDF: DataFrame, newTableDF: DataFrame, tableName: String): Unit = {
     import spark.sqlContext.implicits._
 
-    val reportDir = s"./job_reports/report_$tableName"
+    val reportDir = s"./job_DLI_reports/report_$tableName"
 
     deleteTmpDirectory(reportDir)
 
     val amountOfLinesInNewFile = addedTableDF.count()
 
     val newSchema = addedTableDF.schema.mkString("\n")
+      .split("\\(").mkString("").replaceAll("StructField", "")
+      .split("\\)").mkString("")
 
     val amountOfInsert = addedTableDF.filter($"Nature_Action" === "I").count()
     val amountOfUpdate = addedTableDF.filter($"Nature_Action" === "U").count()
@@ -40,26 +41,7 @@ object IntegrationReport {
       s"Amount of lines in table previously: $amountOfLinesOld",
       s"Amount of lines in table now:        $amountOfLinesNow",
       s"New schema:", newSchema))
-      .coalesce(1)
-      .saveAsTextFile(reportDir)
-
-
-    logger.warn("===> WRITING REPORT <===")
-
-    logger.warn("*** FINAL REPORT 1: WHAT WAS ADDED ***")
-    println("AMOUNT OF LINES = " + addedTableDF.count)
-    println("NEW SCHEMA = ")
-    addedTableDF.printSchema()
-    println("AMOUNT OF 'INSERT' = " + addedTableDF.filter($"Nature_Action" === "I").count())
-    println("AMOUNT OF 'UPDATE' = " + addedTableDF.filter($"Nature_Action" === "U").count())
-    println("AMOUNT OF 'DELETE' = " + addedTableDF.filter($"Nature_Action" === "D").count())
-
-    logger.warn("*** FINAL REPORT 2: WHAT IS NOW ***")
-    println("AMOUNT OF LINES = " + newTableDF.count)
-    println("NEW SCHEMA = ")
-    newTableDF.printSchema()
-
-    logger.warn("*** FINAL REPORT 3: EMPTY COLUMNS ***")
+      .toDF.coalesce(1).write.mode("append").text(reportDir)
 
     val finalReport = if (newTableDF.columns.contains("summary")) {
 
@@ -74,6 +56,7 @@ object IntegrationReport {
 
     finalReportTransposed.show(false)
 
-    finalReportTransposed.coalesce(1).write.mode("overwrite").option("header", "true").format("csv").save(s"./job_reporting/$tableName")
+    finalReportTransposed.coalesce(1).write.mode("overwrite").option("header", "true").format("csv")
+      .save(s"./job_DLI_reports/columns_study/$tableName")
   }
 }
