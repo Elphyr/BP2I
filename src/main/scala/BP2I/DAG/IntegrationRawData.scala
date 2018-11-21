@@ -32,7 +32,7 @@ object IntegrationRawData {
     val newDataTableDF = spark.sql(s"SELECT * FROM $newDataTableApplication.$newDataTableName")
 
     val tableName = newDataTableInformation(1).replaceAll("-", "")
-    
+
     logger.warn("Step 5: checking if data table already exists")
     if (spark.catalog.tableExists(s"$newDataTableApplication.$tableName")) {
 
