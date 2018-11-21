@@ -1,7 +1,7 @@
 package BP2I.Utils
 
-import BP2I.Utils.Param.{spark, logger}
-import org.apache.hadoop.fs.{FileStatus, FileSystem, Path}
+import BP2I.Utils.Param.{fileSystem, logger, spark}
+import org.apache.hadoop.fs.{FileStatus, Path}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.input_file_name
 
@@ -14,8 +14,6 @@ object FileFunctions {
     * @return
     */
   def getListOfDirectories(dir: String): Seq[String] = {
-
-    val fileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
 
     val directories = fileSystem.listStatus(new Path(dir))
 
@@ -32,8 +30,6 @@ object FileFunctions {
     * @return
     */
   def datFileExists(directory: FileStatus): Boolean = {
-
-    val fileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
 
     val datFilePath = new Path(directory.getPath.toString ++ "/*.dat")
 
@@ -92,9 +88,7 @@ object FileFunctions {
     */
   def deleteTmpDirectory(path: String): AnyVal = {
 
-    val hadoopFileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
-
-    if (hadoopFileSystem.exists(new Path(path)))
-      hadoopFileSystem.delete(new Path(path), true)
+    if (fileSystem.exists(new Path(path)))
+      fileSystem.delete(new Path(path), true)
   }
 }

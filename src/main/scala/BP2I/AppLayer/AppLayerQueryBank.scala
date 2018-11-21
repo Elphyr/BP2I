@@ -39,4 +39,6 @@ object AppLayerQueryBank {
         left outer join reftec.caresourceclass on caresourceclass.id = camodeldef.class_id
         left outer join reftec.ztypologie on ztypologie.id = camodeldef.z_typologie
         left outer join reftec.zvalobso on zvalobso.id = camodeldef.z_val_obso"""
+
+  val dimClasseQuery = "select id, name, family_id from reftec.caresourceclass"
 }

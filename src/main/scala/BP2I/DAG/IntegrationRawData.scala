@@ -1,7 +1,7 @@
 package BP2I.DAG
 
+import BP2I.Reporting.IntegrationReport.writeReportRawLayer
 import BP2I.Utils.HiveFunctions._
-import BP2I.Utils.IntegrationReport.writeReportRawLayer
 import BP2I.Utils.Param.{logger, spark, warehouseLocation}
 
 object IntegrationRawData {
@@ -22,24 +22,24 @@ object IntegrationRawData {
     val newDataTableApplication = newDataTableInformation.head
     val newDataTableName = newDataTableInformation.takeRight(4).mkString("_").replaceAll("-", "")
 
-    spark.sql(s"CREATE DATABASE IF NOT EXISTS $newDataTableApplication LOCATION '$warehouseLocation'")
+    spark.sql(s"CREATE DATABASE IF NOT EXISTS $newDataTableApplication LOCATION '$warehouseLocation/${newDataTableApplication.toLowerCase()}'")
 
     logger.warn("Step 3: creating external table")
-    createExternalTable(newDataTableApplication, newDataTableName, hiveQuery, args + "/*.dat")
+    createExternalTable(newDataTableApplication, newDataTableName, hiveQuery, args)
 
     logger.warn("Step 4: creating internal table")
-    createInternalTable(newDataTableApplication, newDataTableName + "_int", newDataTableName, hiveQuery)
-    val newDataTableDF = spark.sql(s"SELECT * FROM $newDataTableApplication.${newDataTableName}_int")
+    //createInternalTable(newDataTableApplication, newDataTableName + "_int", newDataTableName, hiveQuery)
+    val newDataTableDF = spark.sql(s"SELECT * FROM $newDataTableApplication.$newDataTableName")
 
     val tableName = newDataTableInformation(1).replaceAll("-", "")
-
+    
     logger.warn("Step 5: checking if data table already exists")
     if (spark.catalog.tableExists(s"$newDataTableApplication.$tableName")) {
 
       logger.warn(s"Step 5: table with same name found, updating table named: $tableName")
       val (addedTableDF, newTableDF) = feedNewDataIntoTable(newDataTableApplication, tableName, newDataTableDF, primaryColumn, hiveQuery)
 
-      writeReportRawLayer(addedTableDF, newTableDF, newDataTableInformation(1))
+      writeReportRawLayer(addedTableDF, newTableDF, newDataTableInformation)
 
       logger.warn(s"===> JOB COMPLETED FOR TABLE $tableName <===")
     } else {
@@ -47,7 +47,7 @@ object IntegrationRawData {
       logger.warn(s"Step 5: no table with the same name found, creating new table as '$tableName'")
       dropNatureAction(newDataTableDF, newDataTableApplication, tableName, hiveQuery)
 
-      writeReportRawLayer(newDataTableDF, newDataTableDF, newDataTableInformation(1))
+      writeReportRawLayer(newDataTableDF, newDataTableDF, newDataTableInformation)
 
       logger.warn(s"===> JOB COMPLETED FOR TABLE $tableName <===")
     }

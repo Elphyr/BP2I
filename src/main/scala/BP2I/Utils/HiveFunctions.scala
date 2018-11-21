@@ -139,8 +139,6 @@ object HiveFunctions {
     */
   def dropNatureAction(dataFrame: DataFrame, tableApplication: String, tableName: String, columnsAndTypes: List[String]): DataFrame = {
 
-    val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
-
     val finalDF = dataFrame.drop("Nature_Action")
 
     finalDF.createOrReplaceTempView(s"${tableName}_tmp")

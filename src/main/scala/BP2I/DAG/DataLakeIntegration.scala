@@ -1,10 +1,7 @@
 package BP2I.DAG
 
-import java.util.Calendar
-
 import BP2I.Utils.Arguments
 import BP2I.Utils.FileFunctions.getListOfDirectories
-import BP2I.Utils.MiscFunctions.{checkSchemaAppLayer, getAppLayerQuery}
 import BP2I.Utils.Param.{logger, spark}
 
 object DataLakeIntegration {
@@ -23,7 +20,9 @@ object DataLakeIntegration {
 //      val query = getAppLayerQuery(appName)
 //      val toto = spark.sql(query)
 //      spark.sql(query).show(100, false)
-
+//
+//      val tutu = DateTime.now().toString()
+//
 //      checkSchemaAppLayer(toto, appName)
 
       val listOfDirectories = getListOfDirectories(argument.parentFolder.get)

@@ -1,8 +1,8 @@
-package BP2I.Utils
+package BP2I.Reporting
 
 import BP2I.Utils.FileFunctions.deleteTmpDirectory
 import BP2I.Utils.MiscFunctions.transposeDF
-import BP2I.Utils.Param.spark
+import BP2I.Utils.Param.{reportLocation, spark}
 import org.apache.spark.sql.DataFrame
 
 object IntegrationReport {
@@ -13,10 +13,14 @@ object IntegrationReport {
     * 2. What was added: amount of lines, schema. Amount of Insert, Update and Delete.
     * 3. What is now: amount of lines, schema.
     */
-  def writeReportRawLayer(addedTableDF: DataFrame, newTableDF: DataFrame, tableName: String): Unit = {
+  def writeReportRawLayer(addedTableDF: DataFrame, newTableDF: DataFrame, tableInformation: Seq[String]): Unit = {
     import spark.sqlContext.implicits._
 
-    val reportDir = s"./job_DLI_reports/report_$tableName"
+    val tableName = tableInformation(1)
+    val applicationName = tableInformation.head
+    val integrationDate = tableInformation(2) + "_" + tableInformation(3) + "_" + tableInformation.last
+
+    val reportDir = s"$reportLocation/integration/$applicationName/$tableName/$integrationDate"
 
     deleteTmpDirectory(reportDir)
 
@@ -54,9 +58,7 @@ object IntegrationReport {
 
     val finalReportTransposed = transposeDF(finalReport, tableName)
 
-    finalReportTransposed.show(false)
-
     finalReportTransposed.coalesce(1).write.mode("overwrite").option("header", "true").format("csv")
-      .save(s"./job_DLI_reports/columns_study/$tableName")
+      .save(s"$reportDir/columns_study")
   }
 }

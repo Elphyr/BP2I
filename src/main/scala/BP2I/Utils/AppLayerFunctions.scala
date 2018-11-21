@@ -1,8 +1,8 @@
 package BP2I.Utils
 
+import BP2I.Utils.MiscFunctions.checkSchemaAppLayer
 import BP2I.Utils.Param.spark
 import org.apache.spark.sql.functions.{base64, coalesce, from_unixtime, instr}
-import BP2I.Utils.MiscFunctions.checkSchemaAppLayer
 
 object AppLayerFunctions {
 
