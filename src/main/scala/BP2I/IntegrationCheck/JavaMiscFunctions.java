@@ -38,7 +38,7 @@ class JavaMiscFunctions {
         return listOfPath;
     }
 
-    List<String> getFilesTableName(List<Path> listOfPath) throws IOException {
+    List<String> getFilesTableName(List<Path> listOfPath) {
 
         List<String> listOfTables = new ArrayList<String>();
 
@@ -68,58 +68,48 @@ class JavaMiscFunctions {
 
     int getAmountOfFiles(Path dirPath) throws IOException {
 
-        List<Path> listOfFiles = getFilesPath(dirPath);
+        List<Path> listOfFilesPath = getFilesPath(dirPath);
 
         List<String> listOfFilesNames = new ArrayList<String>();
 
-        for (Path p : listOfFiles) {
+        for (Path path : listOfFilesPath) {
 
             List<String> separatedFilesPath = Lists.reverse(
                     Arrays.asList(
-                            p.toUri().getRawPath()
+                            path.toUri().getRawPath()
                                     .replace("[", "").replace("]", "")
                                     .split("/")));
 
             listOfFilesNames.add(separatedFilesPath.get(0));
         }
 
-        return listOfFilesNames.size();
+        List<String> filteredListOfFilesNames = listOfFilesNames.stream()
+                .filter(x -> x.contains(".dat") || x.contains(".des")).collect(Collectors.toList());
+
+        return filteredListOfFilesNames.size();
     }
-
-
-
-
-
-
-
-
-
-
 
     Path getDesFilePath(List<Path> listOfPaths) {
 
         List<String> listOfFiles = new ArrayList<String>();
 
-        for (Path p : listOfPaths) {
+        for (Path path : listOfPaths) {
 
-            listOfFiles.add(p.toString());
+            listOfFiles.add(path.toString());
         }
 
-        String toto = Collections2.filter(listOfFiles, Predicates.containsPattern(".des")).toString().replace("[", "").replace("]", "");
-
-        Path desPath = new Path(toto);
+        Path desPath = new Path(Collections2.filter(listOfFiles, Predicates.containsPattern(".des")).toString().replace("[", "").replace("]", ""));
 
         return desPath;
-
     }
 
     Boolean checkDatExists(List<Path> listOfPaths) {
 
         List<String> listOfFiles = new ArrayList<String>();
 
-        for (Path p : listOfPaths) {
+        for (Path path : listOfPaths) {
 
-            listOfFiles.add(p.toString());
+            listOfFiles.add(path.toString());
         }
 
         boolean cond = !Collections2.filter(listOfFiles, Predicates.containsPattern(".dat")).isEmpty();
