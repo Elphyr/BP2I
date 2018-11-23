@@ -27,16 +27,14 @@ object IntegrationRawData {
     logger.warn("Step 3: creating external table")
     createExternalTable(newDataTableApplication, newDataTableName, hiveQuery, args)
 
-    logger.warn("Step 4: creating internal table")
-    //createInternalTable(newDataTableApplication, newDataTableName + "_int", newDataTableName, hiveQuery)
     val newDataTableDF = spark.sql(s"SELECT * FROM $newDataTableApplication.$newDataTableName")
 
     val tableName = newDataTableInformation(1).replaceAll("-", "")
 
-    logger.warn("Step 5: checking if data table already exists")
+    logger.warn("Step 4: checking if data table already exists")
     if (spark.catalog.tableExists(s"$newDataTableApplication.$tableName")) {
 
-      logger.warn(s"Step 5: table with same name found, updating table named: $tableName")
+      logger.warn(s"Step 4: table with same name found, updating table named: $tableName")
       val (addedTableDF, newTableDF) = feedNewDataIntoTable(newDataTableApplication, tableName, newDataTableDF, primaryColumn, hiveQuery)
 
       writeReportRawLayer(addedTableDF, newTableDF, newDataTableInformation)
@@ -44,7 +42,7 @@ object IntegrationRawData {
       logger.warn(s"===> JOB COMPLETED FOR TABLE $tableName <===")
     } else {
 
-      logger.warn(s"Step 5: no table with the same name found, creating new table as '$tableName'")
+      logger.warn(s"Step 4: no table with the same name found, creating new table as '$tableName'")
       dropNatureAction(newDataTableDF, newDataTableApplication, tableName, hiveQuery)
 
       writeReportRawLayer(newDataTableDF, newDataTableDF, newDataTableInformation)

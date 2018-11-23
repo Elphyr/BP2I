@@ -99,4 +99,25 @@ public class JavaMiscFunctions {
 
         return listOfColumns;
     }
+
+    List<String> getListOfTablesFromParameter(String fileAbsolutePath) throws IOException {
+
+        File file = new File(fileAbsolutePath);
+
+        List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+
+        List<String> listOfColumns = new ArrayList<String>();
+
+        for (String line : lines) {
+
+            String[] array = line.split(";", -1);
+
+            listOfColumns.add(array[1]);
+        }
+
+        listOfColumns.remove(0);
+        listOfColumns.remove(0);
+
+        return listOfColumns;
+    }
 }
