@@ -1,5 +1,6 @@
 package BP2I.IntegrationCheck;
 
+import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -13,9 +14,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class JavaMiscFunctions {
+class JavaMiscFunctions {
 
     List<Path> getFilesPath(Path path) throws IOException {
 
@@ -34,6 +37,64 @@ public class JavaMiscFunctions {
 
         return listOfPath;
     }
+
+    List<String> getFilesTableName(List<Path> listOfPath) throws IOException {
+
+        List<String> listOfTables = new ArrayList<String>();
+
+        for (Path path : listOfPath) {
+
+            List<String> separatedFilesPath = Lists.reverse(
+                    Arrays.asList(
+                            path.toUri().getRawPath()
+                                    .replace("[", "").replace("]", "")
+                                    .split("/")));
+
+            List<String> separatedFileName = Arrays.asList(separatedFilesPath.get(0).split("_"));
+
+            try {
+
+                listOfTables.add(separatedFileName.get(1));
+
+            }
+            catch (ArrayIndexOutOfBoundsException e) {
+
+                System.out.println("There is a problem here: " + path.toUri().getRawPath());
+            }
+        }
+
+        return listOfTables.stream().distinct().collect(Collectors.toList());
+    }
+
+    int getAmountOfFiles(Path dirPath) throws IOException {
+
+        List<Path> listOfFiles = getFilesPath(dirPath);
+
+        List<String> listOfFilesNames = new ArrayList<String>();
+
+        for (Path p : listOfFiles) {
+
+            List<String> separatedFilesPath = Lists.reverse(
+                    Arrays.asList(
+                            p.toUri().getRawPath()
+                                    .replace("[", "").replace("]", "")
+                                    .split("/")));
+
+            listOfFilesNames.add(separatedFilesPath.get(0));
+        }
+
+        return listOfFilesNames.size();
+    }
+
+
+
+
+
+
+
+
+
+
 
     Path getDesFilePath(List<Path> listOfPaths) {
 
