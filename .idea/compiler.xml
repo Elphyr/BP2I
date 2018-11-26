@@ -9,5 +9,8 @@
         <module name="BP2I_Spark" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="BP2I_Spark" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

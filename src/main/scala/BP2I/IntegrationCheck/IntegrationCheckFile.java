@@ -3,12 +3,11 @@ package BP2I.IntegrationCheck;
 import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 
 public class IntegrationCheckFile {
 
-    public static void main(String[] args) throws IOException, SQLException {
+    public static void main(String[] args) throws IOException {
 
         JavaMiscFunctions mf = new JavaMiscFunctions();
 
@@ -59,7 +58,7 @@ public class IntegrationCheckFile {
 
         System.out.println("======================== PARAMETERS TABLE ========================");
 
-        String parameterPath = "/home/raphael/Documents/Lincoln/2018-BP2I/reftec_2018/tables_de_parametrage/parametre_application_draft1";
+        String parameterPath = "/home/raphael/Documents/Lincoln/BP2I/Tables_parametrage/parametre_application_draft1";
 
         List<String> toto = mf.getListOfTablesFromParameter(parameterPath);
         

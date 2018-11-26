@@ -58,7 +58,7 @@ object HiveFunctions {
     * @param dataFormat
     * @return
     */
-  def createExternalTable(tableApplication: String, tableName: String, columnsAndTypes: List[String], dataDirPath: String, dataFormat: String = "csv"): DataFrame = {
+  def createExternalTable(tableApplication: String, tableName: String, columnsAndTypes: List[String], dataDirPath: String, dataFormat: String = "csv", delTmpDir: Boolean = true): Unit = {
 
     spark.sql(s"DROP TABLE IF EXISTS $tableApplication.$tableName")
 
@@ -75,12 +75,18 @@ object HiveFunctions {
         "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
     }
 
+    val dataDirPathFinal =
+    if (delTmpDir) dataDirPath + "/*.dat"
+    else dataDirPath
+
     val externalTableQuery = s"CREATE EXTERNAL TABLE $tableApplication.$tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
       s"$format " +
-      s"LOCATION '$dataDirPath' "
+      s"LOCATION '$dataDirPathFinal' "
 
     spark.sql(externalTableQuery)
+
+    if (delTmpDir) deleteTmpDirectory(dataDirPath + "/*.dat")
   }
 
   /**
@@ -158,7 +164,7 @@ object HiveFunctions {
     */
   def feedNewDataIntoTable(tableApplication: String, tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame) = {
 
-    val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable"
+    val tmpDir = "/home/raphael/workspace/BP2I_Spark/tmp_newTable/"
     //val tmpDir = "/home/lc61470/tmp/tmp_newTable"
     //val tmpDir = "/user/lc61470/tmp/tmp_newTable"
 
@@ -178,7 +184,7 @@ object HiveFunctions {
 
     val columnsAndTypesWONatureAction = columnsAndTypes.filterNot(_.contains("Nature_Action"))
 
-    createExternalTable(tableApplication, tableName + "_tmp", columnsAndTypesWONatureAction, tmpDir, "parquet")
+    createExternalTable(tableApplication, tableName + "_tmp", columnsAndTypesWONatureAction, tmpDir, "parquet", delTmpDir = false)
 
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 

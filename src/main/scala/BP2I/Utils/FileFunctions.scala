@@ -89,6 +89,7 @@ object FileFunctions {
   def deleteTmpDirectory(path: String): AnyVal = {
 
     if (fileSystem.exists(new Path(path)))
+
       fileSystem.delete(new Path(path), true)
   }
 }

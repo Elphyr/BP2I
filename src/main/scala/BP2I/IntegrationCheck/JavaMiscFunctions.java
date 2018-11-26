@@ -167,8 +167,7 @@ class JavaMiscFunctions {
         }
 
         listOfColumns.remove(0);
-        listOfColumns.remove(0);
 
-        return listOfColumns;
+        return listOfColumns.stream().distinct().collect(Collectors.toList());
     }
 }

@@ -14,7 +14,8 @@ object IntegrationRawData {
 
     logger.warn("Step 1: initializing table name and .des path")
     val desPath = args + "/*.des"
-    logger.warn("Step 1: files red: " + "\n" + s"$desPath")
+    val datPath = args
+    logger.warn("Step 1: files red: " + "\n" + s"$args")
 
     logger.warn("Step 2: read the .des file and create Hive query accordingly")
     val (newDataTableInformation, primaryColumn, hiveQuery) = readDesFile(desPath)
@@ -25,14 +26,15 @@ object IntegrationRawData {
     spark.sql(s"CREATE DATABASE IF NOT EXISTS $newDataTableApplication LOCATION '$warehouseLocation/${newDataTableApplication.toLowerCase()}'")
 
     logger.warn("Step 3: creating external table")
-    createExternalTable(newDataTableApplication, newDataTableName, hiveQuery, args)
+    createExternalTable(newDataTableApplication, newDataTableName, hiveQuery, datPath)
 
     val newDataTableDF = spark.sql(s"SELECT * FROM $newDataTableApplication.$newDataTableName")
 
     val tableName = newDataTableInformation(1).replaceAll("-", "")
 
     logger.warn("Step 4: checking if data table already exists")
-    if (spark.catalog.tableExists(s"$newDataTableApplication.$tableName")) {
+    spark.catalog.setCurrentDatabase(s"$newDataTableApplication")
+    if (spark.catalog.tableExists(s"$tableName")) {
 
       logger.warn(s"Step 4: table with same name found, updating table named: $tableName")
       val (addedTableDF, newTableDF) = feedNewDataIntoTable(newDataTableApplication, tableName, newDataTableDF, primaryColumn, hiveQuery)
