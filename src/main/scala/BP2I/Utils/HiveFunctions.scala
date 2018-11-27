@@ -86,7 +86,7 @@ object HiveFunctions {
 
     spark.sql(externalTableQuery)
 
-    if (delTmpDir) deleteTmpDirectory(dataDirPath + "/*.dat")
+    if (delTmpDir) deleteTmpDirectory(dataDirPathFinal)
   }
 
   /**

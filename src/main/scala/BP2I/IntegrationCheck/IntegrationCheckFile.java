@@ -11,61 +11,56 @@ public class IntegrationCheckFile {
 
         JavaMiscFunctions mf = new JavaMiscFunctions();
 
+        System.out.println("======================== ############## ========================");
+        System.out.println("=========================== STAGE 0 ============================");
+        System.out.println("Initialize files to upload into HDFS.");
+        System.out.println("======================== ############## ========================");
+        System.out.println();
+
         Path parentDir = new Path("./JavaTest");
+        Path hdfsDir = new Path("/home/raphael/Documents/Lincoln/BP2I/Simulation_hdfs");
 
-        List<Path> listOfPathTotal = mf.getFilesPath(parentDir);
-
-        System.out.print("List of tables in parent directory: ");
-        List<String> listOfTableNames = mf.getFilesTableName(listOfPathTotal);
-        System.out.println(listOfTableNames);
+        List<Path> listOfPathsStage0 = mf.getFilesPath(parentDir);
 
         int amountOfFiles = mf.getAmountOfFiles(parentDir);
-        System.out.print("Amount of files in parent directory: ");
+        System.out.print("INFO: Stage 0, amount of files in parent directory: ");
         System.out.println(amountOfFiles);
 
-        Path goodDir = new Path("./JavaTest/bool-tab");
+        System.out.print("INFO: Stage 0, list of tables to initialize: ");
+        List<String> listOfTableNames = mf.getFilesTableName(listOfPathsStage0);
+        System.out.println(listOfTableNames);
 
-        Path badDir = new Path("./JavaTest/ca-resource-class-error");
+        System.out.println("WARN: Stage 0, list of files already existing in HDFS, removing them from job: ");
+        List<Path> listOfPathsStage1 = mf.filterFilesAlreadyExistingHdfs(parentDir, hdfsDir);
 
-        System.out.println("======================== GOOD DIRECTORY ========================");
+        System.out.println("INFO: Stage 0, list of files that are going to stage 1: ");
+        for (Path p : listOfPathsStage1) {
+            System.out.println(p.toUri());
+        }
 
-        List<Path> listOfPathGood = mf.getFilesPath(goodDir);
+        System.out.println();
+        System.out.println("======================== ############## ========================");
+        System.out.println("=========================== STAGE 1 ============================");
+        System.out.println("Check if all files are here (.dat & .des).");
+        System.out.println("======================== ############## ========================");
+        System.out.println();
 
-        System.out.println(listOfPathGood);
-
-        System.out.print("Does .des file exist? ");
-        System.out.println(mf.checkDesExists(listOfPathGood));
-        System.out.print("Does .dat file exist? ");
-        System.out.println(mf.checkDatExists(listOfPathGood));
-
-        Path goodDesPath = mf.getDesFilePath(listOfPathGood);
-
-        List<String> abcd = mf.getColumnsFromDesFile(goodDesPath.toUri().getRawPath());
-
-        System.out.println(abcd);
-
-
-        System.out.println("======================== BAD DIRECTORY ========================");
-
-        List<Path> listOfPathBad = mf.getFilesPath(badDir);
-
-        System.out.println(listOfPathBad);
-
-        System.out.print("Does .des file exist? ");
-        System.out.println(mf.checkDesExists(listOfPathBad));
-        System.out.print("Does .dat file exist? ");
-        System.out.println(mf.checkDatExists(listOfPathBad));
-
-        System.out.println("======================== PARAMETERS TABLE ========================");
-
-        String parameterPath = "/home/raphael/Documents/Lincoln/BP2I/Tables_parametrage/parametre_application_draft1";
-
-        List<String> toto = mf.getListOfTablesFromParameter(parameterPath);
-        
-        System.out.println(toto);
+        List<Path> listOfPathsStage2 = mf.filterFilesWithoutDatDes(listOfPathsStage1);
+        System.out.println("INFO: Stage 1, list of files that are going to stage 2: ");
+        for (Path p : listOfPathsStage2) {
+            System.out.println(p.toUri());
+        }
 
 
-        System.out.println("========================");
+        System.out.println("======================== ############## ========================");
+        System.out.println();
 
+
+
+        Path parameterPath = new Path("/home/raphael/Documents/Lincoln/BP2I/Tables_parametrage/parametre_application_draft1");
+
+        List<String> listOfTablesFromParameter = mf.getListOfTablesFromParameter(parameterPath);
+
+        System.out.println(listOfTablesFromParameter);
     }
 }

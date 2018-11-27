@@ -38,6 +38,28 @@ class JavaMiscFunctions {
         return listOfPath;
     }
 
+    List<Path> filterFilesAlreadyExistingHdfs(Path parentPath, Path hdfsPath) throws IOException {
+
+        List<Path> listOfFilesToIntegrate = getFilesPath(parentPath);
+
+        List<Path> listOfPathStage1 = new ArrayList<>();
+
+        List<String> listOfFileNamesHDFS = getFilesPath(hdfsPath).stream().map(Path::getName).collect(Collectors.toList());
+
+        for (Path p : listOfFilesToIntegrate) {
+
+            if (listOfFileNamesHDFS.contains(p.getName())) {
+
+                System.out.println("WARN: " + p.getName() + " ALREADY EXISTS IN THE DATALAKE!");
+            } else {
+
+                listOfPathStage1.add(p);
+            }
+        }
+
+        return listOfPathStage1;
+    }
+
     List<String> getFilesTableName(List<Path> listOfPath) {
 
         List<String> listOfTables = new ArrayList<String>();
@@ -103,32 +125,32 @@ class JavaMiscFunctions {
         return desPath;
     }
 
-    Boolean checkDatExists(List<Path> listOfPaths) {
+    List<Path> filterFilesWithoutDatDes(List<Path> listOfPath) throws IOException {
 
-        List<String> listOfFiles = new ArrayList<String>();
+        List<Path> listOfPathStage2 = new ArrayList<>();
 
-        for (Path path : listOfPaths) {
+        for (Path p : listOfPath) {
 
-            listOfFiles.add(path.toString());
+            List<String> files = getFilesPath(p.getParent()).stream().map(Path::toString).collect(Collectors.toList());
+
+            Boolean condDat = !Collections2.filter(files, Predicates.containsPattern(".dat")).isEmpty();
+            Boolean condDes = !Collections2.filter(files, Predicates.containsPattern(".des")).isEmpty();
+
+            if (condDat && condDes) {
+
+                System.out.println(p.getName() + " is good!");
+                listOfPathStage2.add(p);
+
+            } else if (condDat) {
+
+                System.out.println(p.getName() + " lack its buddy .des file!");
+            } else if (condDes) {
+
+                System.out.println(p.getName() + " lack its buddy .dat file!");
+            }
         }
 
-        boolean cond = !Collections2.filter(listOfFiles, Predicates.containsPattern(".dat")).isEmpty();
-
-        return cond;
-    }
-
-    Boolean checkDesExists(List<Path> listOfPaths) {
-
-        List<String> listOfFiles = new ArrayList<String>();
-
-        for (Path p : listOfPaths) {
-
-            listOfFiles.add(p.toString());
-        }
-
-        boolean cond = !Collections2.filter(listOfFiles, Predicates.containsPattern(".des")).isEmpty();
-
-        return cond;
+        return listOfPathStage2;
     }
 
     List<String> getColumnsFromDesFile(String fileAbsolutePath) throws IOException {
@@ -151,9 +173,9 @@ class JavaMiscFunctions {
         return listOfColumns;
     }
 
-    List<String> getListOfTablesFromParameter(String fileAbsolutePath) throws IOException {
+    List<String> getListOfTablesFromParameter(Path fileAbsolutePath) throws IOException {
 
-        File file = new File(fileAbsolutePath);
+        File file = new File(fileAbsolutePath.toUri().getRawPath());
 
         List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
 
@@ -169,5 +191,48 @@ class JavaMiscFunctions {
         listOfColumns.remove(0);
 
         return listOfColumns.stream().distinct().collect(Collectors.toList());
+    }
+
+    List<String> getListOfTypesFromParameter(String fileAbsolutePath) throws IOException {
+
+        File file = new File(fileAbsolutePath);
+
+        List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+
+        List<String> listOfColumns = new ArrayList<String>();
+
+        for (String line : lines) {
+
+            String[] array = line.split(";", -1);
+
+            listOfColumns.add(array[3]);
+        }
+
+        listOfColumns.remove(0);
+
+        return listOfColumns.stream().distinct().collect(Collectors.toList());
+    }
+
+
+    List<String> getListOfTypesNotAllowedIntoDatalake(String paramPath) throws IOException {
+
+        List<String> listOfTypesFromParameter = getListOfTypesFromParameter(paramPath);
+
+        List<String> listOfAcceptedTypes = new JavaParam().acceptedTypes;
+
+
+        List<String> listOfTypesNotAllowedIntoDatalake = new ArrayList<>();
+
+        for (String type : listOfTypesFromParameter) {
+
+            if (!listOfAcceptedTypes.contains(type)) {
+
+                System.out.println(type + " isn't a type that belong in the datalake!");
+
+                listOfTypesNotAllowedIntoDatalake.add(type);
+            }
+        }
+
+        return listOfTypesNotAllowedIntoDatalake.stream().distinct().collect(Collectors.toList());
     }
 }

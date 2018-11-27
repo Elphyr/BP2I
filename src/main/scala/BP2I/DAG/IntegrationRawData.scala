@@ -24,6 +24,7 @@ object IntegrationRawData {
     val newDataTableName = newDataTableInformation.takeRight(4).mkString("_").replaceAll("-", "")
 
     spark.sql(s"CREATE DATABASE IF NOT EXISTS $newDataTableApplication LOCATION '$warehouseLocation/${newDataTableApplication.toLowerCase()}'")
+    spark.catalog.setCurrentDatabase(s"${newDataTableApplication.toLowerCase()}")
 
     logger.warn("Step 3: creating external table")
     createExternalTable(newDataTableApplication, newDataTableName, hiveQuery, datPath)
@@ -33,7 +34,6 @@ object IntegrationRawData {
     val tableName = newDataTableInformation(1).replaceAll("-", "")
 
     logger.warn("Step 4: checking if data table already exists")
-    spark.catalog.setCurrentDatabase(s"$newDataTableApplication")
     if (spark.catalog.tableExists(s"$tableName")) {
 
       logger.warn(s"Step 4: table with same name found, updating table named: $tableName")
