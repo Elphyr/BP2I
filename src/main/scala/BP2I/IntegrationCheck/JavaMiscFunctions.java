@@ -11,14 +11,33 @@ import org.spark_project.guava.collect.Collections2;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 class JavaMiscFunctions {
+
+    void showStage(int stageNbr) {
+
+        String stageDes = "";
+        if (stageNbr == 0) stageDes = "Check if parameter table is able to be red and used.";
+        else if (stageNbr == 1) stageDes = "Check if any file already exists in the datalake.";
+        else if (stageNbr == 2) stageDes = "Check if all files are here (.dat & .des).";
+        else if (stageNbr == 3) stageDes = "Check if all types in the .des file are accepted in the datalake.";
+
+        System.out.println("\n" +
+                "======================== ############## ========================" + "\n" +
+                "=========================== STAGE " + stageNbr + " ============================" + "\n" +
+                stageDes + "\n" +
+                "======================== ############## ========================" + "\n");
+    }
 
     List<Path> getFilesPath(Path path) throws IOException {
 
@@ -27,7 +46,7 @@ class JavaMiscFunctions {
 
         RemoteIterator<LocatedFileStatus> directories = fs.listFiles(path, true);
 
-        List<Path> listOfPath = new ArrayList<Path>();
+        List<Path> listOfPath = new ArrayList<>();
 
         while (directories.hasNext()) {
             LocatedFileStatus fileStatus = directories.next();
@@ -38,6 +57,13 @@ class JavaMiscFunctions {
         return listOfPath;
     }
 
+    /**
+     * STAGE 1
+     * @param parentPath
+     * @param hdfsPath
+     * @return
+     * @throws IOException
+     */
     List<Path> filterFilesAlreadyExistingHdfs(Path parentPath, Path hdfsPath) throws IOException {
 
         List<Path> listOfFilesToIntegrate = getFilesPath(parentPath);
@@ -57,12 +83,26 @@ class JavaMiscFunctions {
             }
         }
 
+        if (listOfFileNamesHDFS.isEmpty()) {
+
+            System.out.println("All files already exist in the datalake.");
+
+            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";1;KO;101") ;
+            writeInReport("./file-name.txt", line);
+
+            System.exit(0);
+        } else {
+
+            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";1;OK;") ;
+            writeInReport("./file-name.txt", line);
+        }
+
         return listOfPathStage1;
     }
 
     List<String> getFilesTableName(List<Path> listOfPath) {
 
-        List<String> listOfTables = new ArrayList<String>();
+        List<String> listOfTables = new ArrayList<>();
 
         for (Path path : listOfPath) {
 
@@ -92,7 +132,7 @@ class JavaMiscFunctions {
 
         List<Path> listOfFilesPath = getFilesPath(dirPath);
 
-        List<String> listOfFilesNames = new ArrayList<String>();
+        List<String> listOfFilesNames = new ArrayList<>();
 
         for (Path path : listOfFilesPath) {
 
@@ -111,9 +151,55 @@ class JavaMiscFunctions {
         return filteredListOfFilesNames.size();
     }
 
-    Path getDesFilePath(List<Path> listOfPaths) {
+    /**
+     * STAGE 2
+     * @param listOfPath
+     * @return
+     * @throws IOException
+     */
+    List<Path> filterFilesWithoutDatDes(List<Path> listOfPath) throws IOException {
 
-        List<String> listOfFiles = new ArrayList<String>();
+        List<Path> listOfPathStage2 = new ArrayList<>();
+
+        for (Path path : listOfPath) {
+
+            List<String> files = getFilesPath(path.getParent()).stream().map(Path::toString).collect(Collectors.toList());
+
+            Boolean condDat = !Collections2.filter(files, Predicates.containsPattern(".dat")).isEmpty();
+            Boolean condDes = !Collections2.filter(files, Predicates.containsPattern(".des")).isEmpty();
+
+            if (condDat && condDes) {
+
+                System.out.println(path.getName() + " is good!");
+                listOfPathStage2.add(path);
+
+            } else if (condDat) {
+
+                System.out.println(path.getName() + " lack its buddy .des file!");
+
+                String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";2;KO;110") ;
+                writeInReport("./file-name.txt", line);
+                System.exit(0);
+            } else if (condDes) {
+
+                System.out.println(path.getName() + " lack its buddy .dat file!");
+
+                String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";2;KO;111") ;
+                writeInReport("./file-name.txt", line);
+                System.exit(0);
+            } else {
+
+                System.out.println("No description and data file found!");
+                System.exit(0);
+            }
+        }
+
+        return listOfPathStage2;
+    }
+
+    private Path getDesFilePath(List<Path> listOfPaths) {
+
+        List<String> listOfFiles = new ArrayList<>();
 
         for (Path path : listOfPaths) {
 
@@ -125,61 +211,88 @@ class JavaMiscFunctions {
         return desPath;
     }
 
-    List<Path> filterFilesWithoutDatDes(List<Path> listOfPath) throws IOException {
-
-        List<Path> listOfPathStage2 = new ArrayList<>();
-
-        for (Path p : listOfPath) {
-
-            List<String> files = getFilesPath(p.getParent()).stream().map(Path::toString).collect(Collectors.toList());
-
-            Boolean condDat = !Collections2.filter(files, Predicates.containsPattern(".dat")).isEmpty();
-            Boolean condDes = !Collections2.filter(files, Predicates.containsPattern(".des")).isEmpty();
-
-            if (condDat && condDes) {
-
-                System.out.println(p.getName() + " is good!");
-                listOfPathStage2.add(p);
-
-            } else if (condDat) {
-
-                System.out.println(p.getName() + " lack its buddy .des file!");
-            } else if (condDes) {
-
-                System.out.println(p.getName() + " lack its buddy .dat file!");
-            }
-        }
-
-        return listOfPathStage2;
-    }
-
-    List<String> getColumnsFromDesFile(String fileAbsolutePath) throws IOException {
+    private List<String> getTypesFromDesFile(String fileAbsolutePath) throws IOException {
 
         File file = new File(fileAbsolutePath);
 
         List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
 
-        List<String> listOfColumns = new ArrayList<String>();
+        List<String> listOfColumns = new ArrayList<>();
 
         for (String line : lines) {
 
             String[] array = line.split(";", -1);
 
-            listOfColumns.add(array[0]);
+            listOfColumns.add(array[2]);
         }
 
         listOfColumns.remove(0);
 
-        return listOfColumns;
+        return listOfColumns.stream().distinct().collect(Collectors.toList());
     }
 
-    List<String> getListOfTablesFromParameter(Path fileAbsolutePath) throws IOException {
+    /**
+     * STAGE 3
+     * @param listOfPaths
+     * @return
+     * @throws IOException
+     */
+    List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths) throws IOException {
+
+        List<String> listOfAcceptedTypes = new JavaParam().acceptedTypes;
+
+        List<String> listOfFilesToRemove = new ArrayList<>();
+
+        List<Path> listOfPathStage3 = new ArrayList<>();
+
+        for (Path path : listOfPaths) {
+
+            Path desPath = getDesFilePath(getFilesPath(path.getParent()));
+
+            List<String> listOfTypes = getTypesFromDesFile(desPath.toUri().getRawPath());
+
+            for (String type : listOfTypes) {
+
+                if (!listOfAcceptedTypes.contains(type)) {
+
+                    listOfFilesToRemove.add(path.getName());
+                }
+            }
+
+            if (!listOfFilesToRemove.contains(path.getName())) {
+
+                listOfPathStage3.add(path);
+            }
+        }
+
+        if (listOfFilesToRemove.isEmpty()) {
+
+            System.out.println("Types are fine in all tables.");
+            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";0;OK;") ;
+            writeInReport("./file-name.txt", line);
+
+        } else {
+
+            System.out.println("Amount of types to change: " + listOfFilesToRemove.size());
+            System.out.println("Types to change: " + listOfFilesToRemove);
+
+            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";3;KO;100") ;
+            writeInReport("./file-name.txt", line);
+
+            System.exit(0);
+        }
+
+
+        return listOfPathStage3;
+    }
+
+    List<String> getTablesFromParameter(Path fileAbsolutePath) throws IOException {
 
         File file = new File(fileAbsolutePath.toUri().getRawPath());
 
         List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
 
-        List<String> listOfColumns = new ArrayList<String>();
+        List<String> listOfColumns = new ArrayList<>();
 
         for (String line : lines) {
 
@@ -193,46 +306,88 @@ class JavaMiscFunctions {
         return listOfColumns.stream().distinct().collect(Collectors.toList());
     }
 
-    List<String> getListOfTypesFromParameter(String fileAbsolutePath) throws IOException {
+    private List<String> getTypesFromParameter(String paramPath) throws IOException {
 
-        File file = new File(fileAbsolutePath);
+        File file = new File(paramPath);
 
         List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
 
-        List<String> listOfColumns = new ArrayList<String>();
+        List<String> listOfTypes = new ArrayList<>();
 
         for (String line : lines) {
 
             String[] array = line.split(";", -1);
 
-            listOfColumns.add(array[3]);
+            listOfTypes.add(array[3]);
         }
 
-        listOfColumns.remove(0);
+        listOfTypes.remove(0);
 
-        return listOfColumns.stream().distinct().collect(Collectors.toList());
+        return listOfTypes.stream().distinct().collect(Collectors.toList());
     }
 
-
-    List<String> getListOfTypesNotAllowedIntoDatalake(String paramPath) throws IOException {
-
-        List<String> listOfTypesFromParameter = getListOfTypesFromParameter(paramPath);
+    /**
+     * STAGE 0
+     * @param paramPath
+     * @throws IOException
+     */
+    void checkParameter(Path paramPath) throws IOException {
 
         List<String> listOfAcceptedTypes = new JavaParam().acceptedTypes;
 
+        List<String> types = getTypesFromParameter(paramPath.toUri().getRawPath());
 
-        List<String> listOfTypesNotAllowedIntoDatalake = new ArrayList<>();
+        List<String> listOfRefusedTypes = new ArrayList<>();
 
-        for (String type : listOfTypesFromParameter) {
+        for (String type : types) {
 
             if (!listOfAcceptedTypes.contains(type)) {
 
-                System.out.println(type + " isn't a type that belong in the datalake!");
-
-                listOfTypesNotAllowedIntoDatalake.add(type);
+                listOfRefusedTypes.add(type);
             }
         }
 
-        return listOfTypesNotAllowedIntoDatalake.stream().distinct().collect(Collectors.toList());
+        if (listOfRefusedTypes.isEmpty()) {
+
+            System.out.println("Types are fine in the parameter file.");
+            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";0;OK;") ;
+            writeInReport("./file-name.txt", line);
+
+        } else {
+
+            System.out.println("Amount of types to change: " + listOfRefusedTypes.size());
+            System.out.println("Types to change: " + listOfRefusedTypes);
+            System.out.println("The parameter table is wrong: please correct type before going further.");
+
+            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";0;KO;100") ;
+            writeInReport("./file-name.txt", line);
+
+            //System.exit(0);
+        }
+    }
+
+    void initializeReport(String filePath) throws IOException {
+
+        java.nio.file.Path file = Paths.get(filePath);
+
+        Files.deleteIfExists(file);
+
+        List<String> logColumns = Collections.singletonList("date;stage;result;error_code");
+        Files.write(file, logColumns, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+
+//        List<String> lines = Arrays.asList("first line", "second line");
+//        Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+//
+//        List<String> lines2 = Arrays.asList("does it", "overwrite?");
+//        Files.write(file, lines2, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+
+    }
+
+    void writeInReport(String reportName, String line) throws IOException {
+
+        java.nio.file.Path file = Paths.get(reportName);
+        List<String> lines = Collections.singletonList(line);
+        Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+
     }
 }

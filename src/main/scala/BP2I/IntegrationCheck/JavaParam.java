@@ -1,6 +1,11 @@
 package BP2I.IntegrationCheck;
 
+import org.apache.hadoop.fs.Path;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class JavaParam {
@@ -13,4 +18,9 @@ public class JavaParam {
      */
     List<String> acceptedTypes = Arrays.asList("int", "float", "smallint", "nvarchar", "varchar", "char", "nchar",
             "timestamp", "datetime", "ntext", "image", "money");
+
+    Path hdfsDir = new Path("/home/raphael/Documents/Lincoln/BP2I/Simulation_hdfs");
+
+    Date date = new Date();
+    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 }
