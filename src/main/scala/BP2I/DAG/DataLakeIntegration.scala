@@ -16,15 +16,6 @@ object DataLakeIntegration {
 
     if (argument.parentFolder.isDefined) {
 
-//      val appName = "dimCatalog"
-//      val query = getAppLayerQuery(appName)
-//      val toto = spark.sql(query)
-//      spark.sql(query).show(100, false)
-//
-//      val tutu = DateTime.now().toString()
-//
-//      checkSchemaAppLayer(toto, appName)
-
       val listOfDirectories = getListOfDirectories(argument.parentFolder.get)
 
       listOfDirectories.foreach(IntegrationRawData.main)

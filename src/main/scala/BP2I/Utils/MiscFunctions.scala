@@ -2,7 +2,6 @@ package BP2I.Utils
 
 import BP2I.AppLayer.{AppLayerQueryBank, AppLayerSchemaBank}
 import BP2I.Utils.Param.{logger, spark}
-import org.apache.hadoop.fs.Path
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Column, DataFrame}
@@ -148,19 +147,4 @@ object MiscFunctions {
       logger.warn(s"Received schema: ${actualSchema.printTreeString()}")
     }
   }
-
-  /**
-    *
-    * @param path
-    */
-  def integrationCheck(directoryName: String) = {
-
-    val path = new Path(directoryName)
-
-
-
-
-  }
-
-
 }

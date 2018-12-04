@@ -188,7 +188,7 @@ object HiveFunctions {
 
     spark.sql(s"DROP TABLE IF EXISTS $tableName")
 
-    createInternalTable(tableApplication, tableName, tableName + "_tmp", columnsAndTypesWONatureAction, "parquet")
+    createInternalTable(tableApplication, tableName, tableName + "_tmp", columnsAndTypesWONatureAction, "csv")
 
     spark.sql(s"INSERT OVERWRITE TABLE $tableName SELECT * FROM ${tableName}_tmp")
 

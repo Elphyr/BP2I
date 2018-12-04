@@ -22,5 +22,7 @@ public class JavaParam {
     Path hdfsDir = new Path("/home/raphael/Documents/Lincoln/BP2I/Simulation_hdfs");
 
     Date date = new Date();
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    DateFormat dateFormatForInside = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    DateFormat dateFormatForOutside = new SimpleDateFormat("yyyyMMdd'_'HHmmss");
+
 }

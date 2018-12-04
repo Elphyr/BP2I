@@ -67,6 +67,14 @@
             <artifactId>scopt_2.11</artifactId>
             <version>3.7.0</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.0.0</version>
+        </dependency>
+
         <!-- Test dependencies. -->
         <dependency>
             <groupId>junit</groupId>

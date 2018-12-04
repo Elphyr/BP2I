@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,7 +28,7 @@ class JavaMiscFunctions {
     void showStage(int stageNbr) {
 
         String stageDes = "";
-        if (stageNbr == 0) stageDes = "Check if parameter table is able to be red and used.";
+        if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
         else if (stageNbr == 1) stageDes = "Check if any file already exists in the datalake.";
         else if (stageNbr == 2) stageDes = "Check if all files are here (.dat & .des).";
         else if (stageNbr == 3) stageDes = "Check if all types in the .des file are accepted in the datalake.";
@@ -64,7 +65,7 @@ class JavaMiscFunctions {
      * @return
      * @throws IOException
      */
-    List<Path> filterFilesAlreadyExistingHdfs(Path parentPath, Path hdfsPath) throws IOException {
+    List<Path> filterFilesAlreadyExistingHdfs(Path parentPath, Path hdfsPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<Path> listOfFilesToIntegrate = getFilesPath(parentPath);
 
@@ -87,14 +88,18 @@ class JavaMiscFunctions {
 
             System.out.println("All files already exist in the datalake.");
 
-            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";1;KO;101") ;
-            writeInReport("./file-name.txt", line);
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";1;KO;101");
+
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "1", "KO", "101");
+            writeInReport(reportName, line);
 
             System.exit(0);
         } else {
 
-            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";1;OK;") ;
-            writeInReport("./file-name.txt", line);
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";1;OK;");
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "1", "OK", "");
+
+            writeInReport(reportName, line);
         }
 
         return listOfPathStage1;
@@ -157,7 +162,7 @@ class JavaMiscFunctions {
      * @return
      * @throws IOException
      */
-    List<Path> filterFilesWithoutDatDes(List<Path> listOfPath) throws IOException {
+    List<Path> filterFilesWithoutDatDes(List<Path> listOfPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<Path> listOfPathStage2 = new ArrayList<>();
 
@@ -172,23 +177,28 @@ class JavaMiscFunctions {
 
                 System.out.println(path.getName() + " is good!");
                 listOfPathStage2.add(path);
+                new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "OK", "");
 
             } else if (condDat) {
 
                 System.out.println(path.getName() + " lack its buddy .des file!");
 
-                String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";2;KO;110") ;
-                writeInReport("./file-name.txt", line);
+                String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";2;KO;110") ;
+                writeInReport(reportName, line);
+                new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "KO", "110");
                 System.exit(0);
             } else if (condDes) {
 
                 System.out.println(path.getName() + " lack its buddy .dat file!");
 
-                String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";2;KO;111") ;
-                writeInReport("./file-name.txt", line);
+                String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";2;KO;111") ;
+                writeInReport(reportName, line);
+                new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "KO", "111");
+
                 System.exit(0);
             } else {
 
+                new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "KO", "112");
                 System.out.println("No description and data file found!");
                 System.exit(0);
             }
@@ -237,7 +247,7 @@ class JavaMiscFunctions {
      * @return
      * @throws IOException
      */
-    List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths) throws IOException {
+    List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<String> listOfAcceptedTypes = new JavaParam().acceptedTypes;
 
@@ -268,16 +278,18 @@ class JavaMiscFunctions {
         if (listOfFilesToRemove.isEmpty()) {
 
             System.out.println("Types are fine in all tables.");
-            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";0;OK;") ;
-            writeInReport("./file-name.txt", line);
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;OK;");
+            writeInReport(reportName, line);
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "OK", "");
 
         } else {
 
             System.out.println("Amount of types to change: " + listOfFilesToRemove.size());
             System.out.println("Types to change: " + listOfFilesToRemove);
 
-            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";3;KO;100") ;
-            writeInReport("./file-name.txt", line);
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";3;KO;100");
+            writeInReport(reportName, line);
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "KO", "100");
 
             System.exit(0);
         }
@@ -331,7 +343,7 @@ class JavaMiscFunctions {
      * @param paramPath
      * @throws IOException
      */
-    void checkParameter(Path paramPath) throws IOException {
+    void checkParameter(Path paramPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<String> listOfAcceptedTypes = new JavaParam().acceptedTypes;
 
@@ -350,8 +362,9 @@ class JavaMiscFunctions {
         if (listOfRefusedTypes.isEmpty()) {
 
             System.out.println("Types are fine in the parameter file.");
-            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";0;OK;") ;
-            writeInReport("./file-name.txt", line);
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;OK;");
+            writeInReport(reportName, line);
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "OK", "");
 
         } else {
 
@@ -359,35 +372,35 @@ class JavaMiscFunctions {
             System.out.println("Types to change: " + listOfRefusedTypes);
             System.out.println("The parameter table is wrong: please correct type before going further.");
 
-            String line = new JavaParam().dateFormat.format(new JavaParam().date).concat(";0;KO;100") ;
-            writeInReport("./file-name.txt", line);
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;KO;100");
+            writeInReport(reportName, line);
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "KO", "100");
+
 
             //System.exit(0);
         }
     }
 
-    void initializeReport(String filePath) throws IOException {
+    String initializeReport(String[] args) throws IOException, SQLException, ClassNotFoundException {
 
-        java.nio.file.Path file = Paths.get(filePath);
+        String reportName = Arrays.asList(args).get(2) + "_" + new JavaParam().dateFormatForOutside.format(new JavaParam().date);
+
+        java.nio.file.Path file = Paths.get(reportName);
 
         Files.deleteIfExists(file);
 
         List<String> logColumns = Collections.singletonList("date;stage;result;error_code");
         Files.write(file, logColumns, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 
-//        List<String> lines = Arrays.asList("first line", "second line");
-//        Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-//
-//        List<String> lines2 = Arrays.asList("does it", "overwrite?");
-//        Files.write(file, lines2, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        new JDBCFunctions().dropTable(reportName);
 
+        return reportName;
     }
 
-    void writeInReport(String reportName, String line) throws IOException {
+    private void writeInReport(String reportName, String line) throws IOException {
 
         java.nio.file.Path file = Paths.get(reportName);
         List<String> lines = Collections.singletonList(line);
         Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-
     }
 }
