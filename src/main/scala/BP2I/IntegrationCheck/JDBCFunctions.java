@@ -3,16 +3,16 @@ package BP2I.IntegrationCheck;
 import java.sql.*;
 
 
-public class JDBCFunctions {
+class JDBCFunctions {
 
-    Connection JDBCConnect() throws ClassNotFoundException, SQLException {
+    private Connection JDBCConnect() throws ClassNotFoundException, SQLException {
 
         Class.forName("org.postgresql.Driver");
         System.out.println("JDBC Driver OK");
 
         String url = "jdbc:postgresql://localhost:5433/";
         String user = "postgres";
-        String passwd = "";
+        String passwd = "elphyr01";
 
         Connection con = DriverManager.getConnection(url, user, passwd);
 
@@ -25,7 +25,6 @@ public class JDBCFunctions {
 
         PreparedStatement dropTable = con.prepareStatement("DROP TABLE IF EXISTS " + tableName);
         dropTable.executeUpdate();
-
     }
 
     void writeStageResultIntoTable(String tableName, String date, String stage, String result, String errorCode) throws ClassNotFoundException, SQLException {
@@ -51,7 +50,7 @@ public class JDBCFunctions {
         int columnsNumber = rsmd.getColumnCount();
         System.out.println(">>> " + tableName + " <<<");
 
-        for (int i = 1 ; i <= rsmd.getColumnCount() ; i++) System.out.print(rsmd.getColumnName(i) + ", " + "\t");
+        for (int i = 1; i <= rsmd.getColumnCount(); i++) System.out.print(rsmd.getColumnName(i) + "\t");
         System.out.println();
 
         while (resultTable.next()) {

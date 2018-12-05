@@ -25,37 +25,50 @@ import java.util.stream.Collectors;
 
 class JavaMiscFunctions {
 
-    void showStage(int stageNbr) {
+    /**
+     * STAGE 0
+     * @param paramPath
+     * @param reportName
+     * @throws IOException
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
+    void checkParameter(Path paramPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
-        String stageDes = "";
-        if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
-        else if (stageNbr == 1) stageDes = "Check if any file already exists in the datalake.";
-        else if (stageNbr == 2) stageDes = "Check if all files are here (.dat & .des).";
-        else if (stageNbr == 3) stageDes = "Check if all types in the .des file are accepted in the datalake.";
+        List<String> listOfAcceptedTypes = new JavaParam().acceptedTypes;
 
-        System.out.println("\n" +
-                "======================== ############## ========================" + "\n" +
-                "=========================== STAGE " + stageNbr + " ============================" + "\n" +
-                stageDes + "\n" +
-                "======================== ############## ========================" + "\n");
-    }
+        List<String> types = getTypesFromParameter(paramPath.toUri().getRawPath());
 
-    List<Path> getFilesPath(Path path) throws IOException {
+        List<String> listOfRefusedTypes = new ArrayList<>();
 
-        Configuration conf = new Configuration();
-        FileSystem fs = FileSystem.get(conf);
+        for (String type : types) {
 
-        RemoteIterator<LocatedFileStatus> directories = fs.listFiles(path, true);
+            if (!listOfAcceptedTypes.contains(type)) {
 
-        List<Path> listOfPath = new ArrayList<>();
-
-        while (directories.hasNext()) {
-            LocatedFileStatus fileStatus = directories.next();
-
-            listOfPath.add(fileStatus.getPath());
+                listOfRefusedTypes.add(type);
+            }
         }
 
-        return listOfPath;
+        if (listOfRefusedTypes.isEmpty()) {
+
+            System.out.println("Types are fine in the parameter file.");
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;OK;");
+            writeInReport(reportName, line);
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "OK", "");
+
+        } else {
+
+            System.out.println("Amount of types to change: " + listOfRefusedTypes.size());
+            System.out.println("Types to change: " + listOfRefusedTypes);
+            System.out.println("The parameter table is wrong: please correct type before going further.");
+
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;KO;100");
+            writeInReport(reportName, line);
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "KO", "100");
+
+
+            //System.exit(0);
+        }
     }
 
     /**
@@ -103,6 +116,159 @@ class JavaMiscFunctions {
         }
 
         return listOfPathStage1;
+    }
+
+    /**
+     * STAGE 2
+     * @param listOfPath
+     * @param reportName
+     * @return
+     * @throws IOException
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
+    List<Path> filterFilesWithoutDatDes(List<Path> listOfPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+
+        List<Path> listOfPathStage2 = new ArrayList<>();
+
+        List<String> flag = new ArrayList<>();
+
+        for (Path path : listOfPath) {
+
+            List<String> files = getFilesPath(path.getParent()).stream().map(Path::toString).collect(Collectors.toList());
+
+            Boolean condDat = !Collections2.filter(files, Predicates.containsPattern(".dat")).isEmpty();
+            Boolean condDes = !Collections2.filter(files, Predicates.containsPattern(".des")).isEmpty();
+
+            if (condDat && condDes) {
+
+                System.out.println(path.getName() + " is good!");
+                listOfPathStage2.add(path);
+
+            } else if (condDat) {
+
+                System.out.println(path.getName() + " lack its buddy .des file!");
+                flag.add("110");
+
+            } else if (condDes) {
+
+                System.out.println(path.getName() + " lack its buddy .dat file!");
+                flag.add("111");
+
+            } else {
+
+                System.out.println("No description and data file found!");
+                flag.add("112");
+            }
+        }
+
+        if (flag.isEmpty()) {
+
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "OK", "");
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";2;OK;");
+            writeInReport(reportName, line);
+        } else {
+
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "KO", flag.get(0));
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";2;KO;" + flag.get(0));
+            writeInReport(reportName, line);
+
+            //System.exit(0);
+        }
+
+        return listOfPathStage2;
+    }
+
+    /**
+     * STAGE 3
+     * @param listOfPaths
+     * @param reportName
+     * @return
+     * @throws IOException
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
+    List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths, String reportName) throws IOException, SQLException, ClassNotFoundException {
+
+        List<String> listOfAcceptedTypes = new JavaParam().acceptedTypes;
+
+        List<String> listOfFilesToRemove = new ArrayList<>();
+
+        List<Path> listOfPathStage3 = new ArrayList<>();
+
+        for (Path path : listOfPaths) {
+
+            Path desPath = getDesFilePath(getFilesPath(path.getParent()));
+
+            List<String> listOfTypes = getTypesFromDesFile(desPath.toUri().getRawPath());
+
+            for (String type : listOfTypes) {
+
+                if (!listOfAcceptedTypes.contains(type)) {
+
+                    listOfFilesToRemove.add(path.getName());
+                }
+            }
+
+            if (!listOfFilesToRemove.contains(path.getName())) {
+
+                listOfPathStage3.add(path);
+            }
+        }
+
+        if (listOfFilesToRemove.isEmpty()) {
+
+            System.out.println("Types are fine in all tables.");
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;OK;");
+            writeInReport(reportName, line);
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "OK", "");
+
+        } else {
+
+            System.out.println("Amount of types to change: " + listOfFilesToRemove.size());
+            System.out.println("Types to change: " + listOfFilesToRemove);
+
+            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";3;KO;100");
+            writeInReport(reportName, line);
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "KO", "100");
+
+            System.exit(0);
+        }
+
+        return listOfPathStage3;
+    }
+
+    void showStage(int stageNbr) {
+
+        String stageDes = "";
+        if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
+        else if (stageNbr == 1) stageDes = "Check if any file already exists in the datalake.";
+        else if (stageNbr == 2) stageDes = "Check if all files are here (.dat & .des).";
+        else if (stageNbr == 3) stageDes = "Check if all types in the .des file are accepted in the datalake.";
+
+        System.out.println("\n" +
+                "======================== ############## ========================" + "\n" +
+                "=========================== STAGE " + stageNbr + " ============================" + "\n" +
+                stageDes + "\n" +
+                "======================== ############## ========================" + "\n");
+    }
+
+    List<Path> getFilesPath(Path path) throws IOException {
+
+        Configuration conf = new Configuration();
+        FileSystem fs = FileSystem.get(conf);
+
+        RemoteIterator<LocatedFileStatus> directories = fs.listFiles(path, true);
+
+        List<Path> listOfPath = new ArrayList<>();
+
+        while (directories.hasNext()) {
+            LocatedFileStatus fileStatus = directories.next();
+
+            listOfPath.add(fileStatus.getPath());
+        }
+
+        return listOfPath;
     }
 
     List<String> getFilesTableName(List<Path> listOfPath) {
@@ -156,57 +322,6 @@ class JavaMiscFunctions {
         return filteredListOfFilesNames.size();
     }
 
-    /**
-     * STAGE 2
-     * @param listOfPath
-     * @return
-     * @throws IOException
-     */
-    List<Path> filterFilesWithoutDatDes(List<Path> listOfPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
-
-        List<Path> listOfPathStage2 = new ArrayList<>();
-
-        for (Path path : listOfPath) {
-
-            List<String> files = getFilesPath(path.getParent()).stream().map(Path::toString).collect(Collectors.toList());
-
-            Boolean condDat = !Collections2.filter(files, Predicates.containsPattern(".dat")).isEmpty();
-            Boolean condDes = !Collections2.filter(files, Predicates.containsPattern(".des")).isEmpty();
-
-            if (condDat && condDes) {
-
-                System.out.println(path.getName() + " is good!");
-                listOfPathStage2.add(path);
-                new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "OK", "");
-
-            } else if (condDat) {
-
-                System.out.println(path.getName() + " lack its buddy .des file!");
-
-                String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";2;KO;110") ;
-                writeInReport(reportName, line);
-                new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "KO", "110");
-                System.exit(0);
-            } else if (condDes) {
-
-                System.out.println(path.getName() + " lack its buddy .dat file!");
-
-                String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";2;KO;111") ;
-                writeInReport(reportName, line);
-                new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "KO", "111");
-
-                System.exit(0);
-            } else {
-
-                new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "KO", "112");
-                System.out.println("No description and data file found!");
-                System.exit(0);
-            }
-        }
-
-        return listOfPathStage2;
-    }
-
     private Path getDesFilePath(List<Path> listOfPaths) {
 
         List<String> listOfFiles = new ArrayList<>();
@@ -239,63 +354,6 @@ class JavaMiscFunctions {
         listOfColumns.remove(0);
 
         return listOfColumns.stream().distinct().collect(Collectors.toList());
-    }
-
-    /**
-     * STAGE 3
-     * @param listOfPaths
-     * @return
-     * @throws IOException
-     */
-    List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths, String reportName) throws IOException, SQLException, ClassNotFoundException {
-
-        List<String> listOfAcceptedTypes = new JavaParam().acceptedTypes;
-
-        List<String> listOfFilesToRemove = new ArrayList<>();
-
-        List<Path> listOfPathStage3 = new ArrayList<>();
-
-        for (Path path : listOfPaths) {
-
-            Path desPath = getDesFilePath(getFilesPath(path.getParent()));
-
-            List<String> listOfTypes = getTypesFromDesFile(desPath.toUri().getRawPath());
-
-            for (String type : listOfTypes) {
-
-                if (!listOfAcceptedTypes.contains(type)) {
-
-                    listOfFilesToRemove.add(path.getName());
-                }
-            }
-
-            if (!listOfFilesToRemove.contains(path.getName())) {
-
-                listOfPathStage3.add(path);
-            }
-        }
-
-        if (listOfFilesToRemove.isEmpty()) {
-
-            System.out.println("Types are fine in all tables.");
-            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;OK;");
-            writeInReport(reportName, line);
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "OK", "");
-
-        } else {
-
-            System.out.println("Amount of types to change: " + listOfFilesToRemove.size());
-            System.out.println("Types to change: " + listOfFilesToRemove);
-
-            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";3;KO;100");
-            writeInReport(reportName, line);
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "KO", "100");
-
-            System.exit(0);
-        }
-
-
-        return listOfPathStage3;
     }
 
     List<String> getTablesFromParameter(Path fileAbsolutePath) throws IOException {
@@ -336,49 +394,6 @@ class JavaMiscFunctions {
         listOfTypes.remove(0);
 
         return listOfTypes.stream().distinct().collect(Collectors.toList());
-    }
-
-    /**
-     * STAGE 0
-     * @param paramPath
-     * @throws IOException
-     */
-    void checkParameter(Path paramPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
-
-        List<String> listOfAcceptedTypes = new JavaParam().acceptedTypes;
-
-        List<String> types = getTypesFromParameter(paramPath.toUri().getRawPath());
-
-        List<String> listOfRefusedTypes = new ArrayList<>();
-
-        for (String type : types) {
-
-            if (!listOfAcceptedTypes.contains(type)) {
-
-                listOfRefusedTypes.add(type);
-            }
-        }
-
-        if (listOfRefusedTypes.isEmpty()) {
-
-            System.out.println("Types are fine in the parameter file.");
-            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;OK;");
-            writeInReport(reportName, line);
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "OK", "");
-
-        } else {
-
-            System.out.println("Amount of types to change: " + listOfRefusedTypes.size());
-            System.out.println("Types to change: " + listOfRefusedTypes);
-            System.out.println("The parameter table is wrong: please correct type before going further.");
-
-            String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;KO;100");
-            writeInReport(reportName, line);
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "KO", "100");
-
-
-            //System.exit(0);
-        }
     }
 
     String initializeReport(String[] args) throws IOException, SQLException, ClassNotFoundException {
