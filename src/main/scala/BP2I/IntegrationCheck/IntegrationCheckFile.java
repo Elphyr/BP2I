@@ -79,8 +79,5 @@ public class IntegrationCheckFile {
         for (Path p : finalPath) {
             System.out.println(p.toUri());
         }
-
-
-
     }
 }

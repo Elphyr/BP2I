@@ -19,7 +19,7 @@ public class JavaParam {
     List<String> acceptedTypes = Arrays.asList("int", "float", "smallint", "nvarchar", "varchar", "char", "nchar",
             "timestamp", "datetime", "ntext", "image", "money");
 
-    Path hdfsDir = new Path("/home/raphael/Documents/Lincoln/BP2I/Simulation_hdfs");
+    Path hdfsDir = new Path("/home/raphael/Documents/Lincoln/BP2I/simulation_hdfs");
 
     Date date = new Date();
     DateFormat dateFormatForInside = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");

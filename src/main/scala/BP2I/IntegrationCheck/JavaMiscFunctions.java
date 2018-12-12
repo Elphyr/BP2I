@@ -54,7 +54,7 @@ class JavaMiscFunctions {
             System.out.println("Types are fine in the parameter file.");
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;OK;");
             writeInReport(reportName, line);
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "OK", "");
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "OK", "", "");
 
         } else {
 
@@ -62,9 +62,11 @@ class JavaMiscFunctions {
             System.out.println("Types to change: " + listOfRefusedTypes);
             System.out.println("The parameter table is wrong: please correct type before going further.");
 
+            String commentary = "Types to change: " + listOfRefusedTypes;
+
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;KO;100");
             writeInReport(reportName, line);
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "KO", "100");
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "KO", "100", commentary);
 
 
             //System.exit(0);
@@ -103,14 +105,14 @@ class JavaMiscFunctions {
 
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";1;KO;101");
 
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "1", "KO", "101");
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "1", "KO", "101", "");
             writeInReport(reportName, line);
 
             System.exit(0);
         } else {
 
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";1;OK;");
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "1", "OK", "");
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "1", "OK", "", "");
 
             writeInReport(reportName, line);
         }
@@ -132,6 +134,7 @@ class JavaMiscFunctions {
         List<Path> listOfPathStage2 = new ArrayList<>();
 
         List<String> flag = new ArrayList<>();
+        List<String> commentary = new ArrayList<>();
 
         for (Path path : listOfPath) {
 
@@ -148,11 +151,13 @@ class JavaMiscFunctions {
             } else if (condDat) {
 
                 System.out.println(path.getName() + " lack its buddy .des file!");
+                commentary.add(path.getName() + " lack its buddy .des file!" );
                 flag.add("110");
 
             } else if (condDes) {
 
                 System.out.println(path.getName() + " lack its buddy .dat file!");
+                commentary.add(path.getName() + " lack its buddy .dat file!" );
                 flag.add("111");
 
             } else {
@@ -164,12 +169,12 @@ class JavaMiscFunctions {
 
         if (flag.isEmpty()) {
 
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "OK", "");
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "OK", "", "");
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";2;OK;");
             writeInReport(reportName, line);
         } else {
 
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "KO", flag.get(0));
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "2", "KO", flag.get(0), commentary.toString());
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";2;KO;" + flag.get(0));
             writeInReport(reportName, line);
 
@@ -221,7 +226,7 @@ class JavaMiscFunctions {
             System.out.println("Types are fine in all tables.");
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";0;OK;");
             writeInReport(reportName, line);
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "OK", "");
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "OK", "", "");
 
         } else {
 
@@ -230,7 +235,7 @@ class JavaMiscFunctions {
 
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";3;KO;100");
             writeInReport(reportName, line);
-            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "KO", "100");
+            new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "KO", "100", "");
 
             System.exit(0);
         }

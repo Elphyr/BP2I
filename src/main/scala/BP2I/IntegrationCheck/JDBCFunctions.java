@@ -10,7 +10,7 @@ class JDBCFunctions {
         Class.forName("org.postgresql.Driver");
         System.out.println("JDBC Driver OK");
 
-        String url = "jdbc:postgresql://localhost:5433/";
+        String url = "jdbc:postgresql://localhost:5432/";
         String user = "postgres";
         String passwd = "elphyr01";
 
@@ -27,21 +27,22 @@ class JDBCFunctions {
         dropTable.executeUpdate();
     }
 
-    void writeStageResultIntoTable(String tableName, String date, String stage, String result, String errorCode) throws ClassNotFoundException, SQLException {
+    void writeStageResultIntoTable(String tableName, String date, String stage, String result, String errorCode, String commentary) throws ClassNotFoundException, SQLException {
 
         Connection con = JDBCConnect();
 
         Statement state = con.createStatement();
 
         PreparedStatement createTable = con.prepareStatement("CREATE TABLE IF NOT EXISTS " + tableName +
-                "(DATE varchar(225), STAGE varchar(225), RESULT varchar(225), ERROR_CODE varchar(225), PRIMARY KEY (STAGE))");
+                "(DATE varchar(225), STAGE varchar(225), RESULT varchar(225), ERROR_CODE varchar(225), COMMENTARY varchar(255), PRIMARY KEY (STAGE))");
         createTable.executeUpdate();
 
-        PreparedStatement st = con.prepareStatement("INSERT INTO " + tableName + "(DATE, STAGE, RESULT, ERROR_CODE) VALUES (?, ?, ?, ?)");
+        PreparedStatement st = con.prepareStatement("INSERT INTO " + tableName + "(DATE, STAGE, RESULT, ERROR_CODE, COMMENTARY) VALUES (?, ?, ?, ?, ?)");
         st.setString(1, date);
         st.setString(2, stage);
         st.setString(3, result);
         st.setString(4, errorCode);
+        st.setString(5, commentary);
         st.executeUpdate();
         st.close();
 
