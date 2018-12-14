@@ -1,6 +1,7 @@
 package BP2I.IntegrationCheck;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -68,7 +69,6 @@ class JavaMiscFunctions {
             writeInReport(reportName, line);
             new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "KO", "100", commentary);
 
-
             //System.exit(0);
         }
     }
@@ -108,7 +108,7 @@ class JavaMiscFunctions {
             new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "1", "KO", "101", "");
             writeInReport(reportName, line);
 
-            System.exit(0);
+            //System.exit(0);
         } else {
 
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";1;OK;");
@@ -237,7 +237,7 @@ class JavaMiscFunctions {
             writeInReport(reportName, line);
             new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "KO", "100", "");
 
-            System.exit(0);
+            //System.exit(0);
         }
 
         return listOfPathStage3;
@@ -246,7 +246,7 @@ class JavaMiscFunctions {
     void showStage(int stageNbr) {
 
         String stageDes = "";
-        if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
+        if      (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
         else if (stageNbr == 1) stageDes = "Check if any file already exists in the datalake.";
         else if (stageNbr == 2) stageDes = "Check if all files are here (.dat & .des).";
         else if (stageNbr == 3) stageDes = "Check if all types in the .des file are accepted in the datalake.";
@@ -420,7 +420,32 @@ class JavaMiscFunctions {
     private void writeInReport(String reportName, String line) throws IOException {
 
         java.nio.file.Path file = Paths.get(reportName);
+
         List<String> lines = Collections.singletonList(line);
+
         Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    }
+
+    void moveToGood(List<Path> goodPaths, String goodDir) throws IOException {
+
+        for (Path p : goodPaths) {
+
+            String tableName = p.getParent().getName();
+
+            FileUtils.copyDirectory(new File(p.getParent().toUri().getRawPath()), new File(goodDir + "/" + tableName));
+        }
+    }
+
+    void moveToBad(List<Path> badPaths, List<Path> goodPaths, String badDir) throws IOException {
+
+        for (Path p : badPaths) {
+
+            if (!goodPaths.contains(p)) {
+
+                String tableName = p.getParent().getName();
+
+                FileUtils.copyDirectory(new File(p.getParent().toUri().getRawPath()), new File(badDir + "/" + tableName));
+            }
+        }
     }
 }

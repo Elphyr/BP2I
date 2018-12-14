@@ -1,8 +1,12 @@
 package BP2I.IntegrationCheck;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -73,11 +77,15 @@ public class IntegrationCheckFile {
 
         mf.showStage(3);
 
-        List<Path> finalPath = mf.filterFilesWithoutAllowedTypes(listOfPathsStage2, reportName);
+        List<Path> listOfPathsStage3 = mf.filterFilesWithoutAllowedTypes(listOfPathsStage2, reportName);
 
         System.out.println("INFO: Stage 3, list of files that are going to stage 4: ");
-        for (Path p : finalPath) {
+        for (Path p : listOfPathsStage3) {
             System.out.println(p.toUri());
         }
+
+        mf.moveToGood(listOfPathsStage3, "/home/raphael/Documents/Lincoln/BP2I/good");
+
+        mf.moveToBad(listOfPathsStage0, listOfPathsStage3, "/home/raphael/Documents/Lincoln/BP2I/bad");
     }
 }
