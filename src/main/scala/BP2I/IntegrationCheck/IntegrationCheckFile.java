@@ -1,12 +1,8 @@
 package BP2I.IntegrationCheck;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;

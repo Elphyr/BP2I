@@ -69,7 +69,6 @@ class JavaMiscFunctions {
             writeInReport(reportName, line);
             new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "0", "KO", "100", commentary);
 
-            //System.exit(0);
         }
     }
 
@@ -108,7 +107,6 @@ class JavaMiscFunctions {
             new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "1", "KO", "101", "");
             writeInReport(reportName, line);
 
-            //System.exit(0);
         } else {
 
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";1;OK;");
@@ -178,7 +176,6 @@ class JavaMiscFunctions {
             String line = new JavaParam().dateFormatForInside.format(new JavaParam().date).concat(";2;KO;" + flag.get(0));
             writeInReport(reportName, line);
 
-            //System.exit(0);
         }
 
         return listOfPathStage2;
@@ -237,7 +234,6 @@ class JavaMiscFunctions {
             writeInReport(reportName, line);
             new JDBCFunctions().writeStageResultIntoTable(reportName, new JavaParam().dateFormatForInside.format(new JavaParam().date), "3", "KO", "100", "");
 
-            //System.exit(0);
         }
 
         return listOfPathStage3;
