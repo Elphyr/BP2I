@@ -1,0 +1,109 @@
+package BP2I.IntegrationCheck;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.WatchEvent.Kind;
+import java.sql.SQLException;
+
+import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
+import static java.nio.file.StandardWatchEventKinds.*;
+
+public class MainWatch {
+
+    private static void watchDirectoryPath(Path path) {
+
+        // Sanity check - Check if path is a folder
+        try {
+
+            Boolean isFolder = (Boolean) Files.getAttribute(path, "basic:isDirectory", NOFOLLOW_LINKS);
+
+            if (!isFolder) {
+
+                throw new IllegalArgumentException("Path: " + path + " is not a folder");
+            }
+
+        } catch (IOException ioe) {
+
+            ioe.printStackTrace();
+        }
+
+        System.out.println("Watching path: " + path);
+
+        // We obtain the file system of the Path
+        FileSystem fs = path.getFileSystem();
+
+        // We create the new WatchService using the new try() block
+        try (WatchService service = fs.newWatchService()) {
+
+            // We register the path to the service
+            // We watch for creation events
+            path.register(service, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
+
+            // Start the infinite polling loop
+            WatchKey key = null;
+
+            do {
+
+                key = service.take();
+
+                // Dequeue events
+                Kind<?> kind = null;
+
+                for (WatchEvent<?> watchEvent : key.pollEvents()) {
+
+                    // Get the type of the event
+                    kind = watchEvent.kind();
+
+                    if (OVERFLOW != kind) {
+
+                        if (ENTRY_CREATE == kind) {
+
+                            Path newPath = ((WatchEvent<Path>) watchEvent).context();
+
+                            System.out.println("New path created: " + newPath);
+
+                            org.apache.hadoop.fs.Path pPath = new org.apache.hadoop.fs.Path("/home/raphael/Documents/Lincoln/BP2I/parameter_table/parameter_reftec_draft1");
+
+                            org.apache.hadoop.fs.Path dirPath = new org.apache.hadoop.fs.Path(path.toAbsolutePath().toString() + "/" + newPath.toString());
+
+                            try {
+                                new IntegrationChecks().integrationChecksSingleFolder(dirPath, pPath, dirPath.getParent().getName());
+
+                            } catch (SQLException | ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+
+                        } else if (ENTRY_MODIFY == kind) {
+
+                            Path newPath = ((WatchEvent<Path>) watchEvent).context();
+
+                            System.out.println("New path modified: " + newPath);
+                        } else if (ENTRY_DELETE == kind) {
+
+                            Path newPath = ((WatchEvent<Path>) watchEvent).context();
+
+                            System.out.println("Path deleted: " + newPath);
+                        }
+                    }
+                }
+
+                if (!key.reset()) {
+
+                    break;
+                }
+            } while (true);
+        } catch (IOException | InterruptedException ioe) {
+
+            ioe.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+
+        File dir = new File("/home/raphael/Documents/Lincoln/BP2I/simulation_serveur_collecte/reftec");
+
+        watchDirectoryPath(dir.toPath());
+    }
+}
+
