@@ -63,28 +63,33 @@ public class MainWatch {
 
                             System.out.println("New path created: " + newPath);
 
-                            org.apache.hadoop.fs.Path pPath = new org.apache.hadoop.fs.Path("/home/raphael/Documents/Lincoln/BP2I/parameter_table/parameter_reftec_draft1");
+                            org.apache.hadoop.fs.Path tableParamPath = new org.apache.hadoop.fs.Path("/home/raphael/Documents/Lincoln/BP2I/parameter_table/table_reftec");
 
                             org.apache.hadoop.fs.Path dirPath = new org.apache.hadoop.fs.Path(path.toAbsolutePath().toString() + "/" + newPath.toString());
 
-                            try {
-                                new IntegrationChecks().integrationChecksSingleFolder(dirPath, pPath, dirPath.getParent().getName());
+                            if (new File(dirPath.toUri().getRawPath()).list().length != 0) {
 
-                            } catch (SQLException | ClassNotFoundException e) {
-                                e.printStackTrace();
+                                try {
+                                    new IntegrationChecks().integrationChecksSingleFolder(dirPath, tableParamPath, dirPath.getParent().getName());
+
+                                } catch (SQLException | ClassNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+
+                                System.out.println("WARNING: no file found inside directory, please check.");
                             }
-
-                        } else if (ENTRY_MODIFY == kind) {
-
-                            Path newPath = ((WatchEvent<Path>) watchEvent).context();
-
-                            System.out.println("New path modified: " + newPath);
-                        } else if (ENTRY_DELETE == kind) {
-
-                            Path newPath = ((WatchEvent<Path>) watchEvent).context();
-
-                            System.out.println("Path deleted: " + newPath);
                         }
+                    } else if (ENTRY_MODIFY == kind) {
+
+                        Path newPath = ((WatchEvent<Path>) watchEvent).context();
+
+                        System.out.println("New path modified: " + newPath);
+                    } else if (ENTRY_DELETE == kind) {
+
+                        Path newPath = ((WatchEvent<Path>) watchEvent).context();
+
+                        System.out.println("Path deleted: " + newPath);
                     }
                 }
 
@@ -101,7 +106,7 @@ public class MainWatch {
 
     public static void main(String[] args) {
 
-        File dir = new File("/home/raphael/Documents/Lincoln/BP2I/simulation_serveur_collecte/reftec");
+        File dir = new File(args[0]);
 
         watchDirectoryPath(dir.toPath());
     }

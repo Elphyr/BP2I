@@ -8,7 +8,6 @@ class JDBCFunctions {
     private Connection JDBCConnect() throws ClassNotFoundException, SQLException {
 
         Class.forName("org.postgresql.Driver");
-        System.out.println("JDBC Driver OK");
 
         String url = "jdbc:postgresql://localhost:5432/";
         String user = "postgres";
