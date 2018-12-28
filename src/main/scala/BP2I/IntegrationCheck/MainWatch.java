@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.WatchEvent.Kind;
 import java.sql.SQLException;
+import java.util.Objects;
 
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
 import static java.nio.file.StandardWatchEventKinds.*;
@@ -67,7 +68,7 @@ public class MainWatch {
 
                             org.apache.hadoop.fs.Path dirPath = new org.apache.hadoop.fs.Path(path.toAbsolutePath().toString() + "/" + newPath.toString());
 
-                            if (new File(dirPath.toUri().getRawPath()).list().length != 0) {
+                            if (Objects.requireNonNull(new File(dirPath.toUri().getRawPath()).list()).length != 0) {
 
                                 try {
                                     new IntegrationChecks().integrationChecksSingleFolder(dirPath, tableParamPath, dirPath.getParent().getName());

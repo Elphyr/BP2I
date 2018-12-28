@@ -45,38 +45,6 @@ class MiscFunctions {
     }
 
     /**
-     * Goal: return the table name of each file.
-     * @param listOfPath
-     * @return
-     */
-    List<String> getFilesTableName(List<Path> listOfPath) {
-
-        List<String> listOfTables = new ArrayList<>();
-
-        for (Path path : listOfPath) {
-
-            List<String> separatedFilesPath = Lists.reverse(
-                    Arrays.asList(
-                            path.toUri().getRawPath()
-                                    .replace("[", "").replace("]", "")
-                                    .split("/")));
-
-            List<String> separatedFileName = Arrays.asList(separatedFilesPath.get(0).split("_"));
-
-            try {
-
-                listOfTables.add(separatedFileName.get(1));
-
-            } catch (ArrayIndexOutOfBoundsException e) {
-
-                System.out.println("There is a problem here: " + path.toUri().getRawPath());
-            }
-        }
-
-        return listOfTables.stream().distinct().collect(Collectors.toList());
-    }
-
-    /**
      * Goal: return the amount of usable (.dat and .des) files in a directory.
      * @param dirPath
      * @return
