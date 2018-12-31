@@ -49,15 +49,13 @@ class StageFunctions {
      */
     void checkTypesInParameter(Path tableParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
-        List<String> listOfAcceptedTypes = jvp.acceptedTypes;
-
         List<String> types = mf.getTypesFromParameter(tableParamPath.toUri().getRawPath());
 
         List<String> listOfRefusedTypes = new ArrayList<>();
 
         for (String type : types) {
 
-            if (!listOfAcceptedTypes.contains(type)) {
+            if (!jvp.acceptedTypes.contains(type)) {
 
                 listOfRefusedTypes.add(type);
             }
@@ -123,6 +121,7 @@ class StageFunctions {
                     if (listOfExpectedFileNames.contains(s)) {
 
                         listOfPathStage1.add(path);
+
                     } else {
 
                         listOfWrongNamedFiles.add(s);
@@ -169,24 +168,29 @@ class StageFunctions {
 
         List<String> listOfFileNamesHDFS = mf.getFilesPath(hdfsPath).stream().map(Path::getName).collect(Collectors.toList());
 
+        List<Path> listOfFilesInDatalake = new ArrayList<>();
+
+        System.out.println(listOfFileNamesHDFS);
+
         for (Path p : listOfFilesToIntegrate) {
 
             if (listOfFileNamesHDFS.contains(p.getName())) {
 
-                System.out.println("WARN: " + p.getName() + " ALREADY EXISTS IN THE DATALAKE!");
+                listOfFilesInDatalake.add(p);
+
             } else {
 
                 listOfPathStage2.add(p);
             }
         }
 
-        if (listOfFileNamesHDFS.isEmpty()) {
+        if (!listOfFileNamesHDFS.isEmpty()) {
 
-            System.out.println("All files already exist in the datalake.");
+            String line = jvp.dateFormatForInside.format(jvp.date).concat(";2;KO;101");
 
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";1;KO;101");
+            String commentary = listOfFilesInDatalake.stream().map(Path::getName).distinct().collect(Collectors.toList()) + " already exist in the datalake.";
 
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "KO", "101", "");
+            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "KO", "101", commentary);
             mf.writeInReport(reportName, line);
 
         } else {
@@ -275,8 +279,6 @@ class StageFunctions {
      */
     List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
-        List<String> listOfAcceptedTypes = jvp.acceptedTypes;
-
         List<String> listOfFilesToRemove = new ArrayList<>();
 
         List<Path> listOfPathStage4 = new ArrayList<>();
@@ -289,7 +291,7 @@ class StageFunctions {
 
             for (String type : listOfTypes) {
 
-                if (!listOfAcceptedTypes.contains(type)) {
+                if (!jvp.acceptedTypes.contains(type)) {
 
                     listOfFilesToRemove.add(path.getName());
                 }

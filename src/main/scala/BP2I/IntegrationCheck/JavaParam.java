@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-public class JavaParam {
+class JavaParam {
 
     /**
      * How it works in datalake for exotic types:
