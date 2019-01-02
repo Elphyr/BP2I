@@ -78,7 +78,7 @@ public class MainWatch {
                                 }
                             } else {
 
-                                System.out.println("WARNING: no file found inside directory, please check.");
+                                System.out.println("WARNING: no file found inside directory: '" + dirPath.toString() + "', please check.");
                             }
                         }
                     } else if (ENTRY_MODIFY == kind) {
@@ -112,4 +112,3 @@ public class MainWatch {
         watchDirectoryPath(dir.toPath());
     }
 }
-

@@ -16,14 +16,12 @@ class IntegrationChecks {
      * Notes.
      * args formed of a single String:
      * - the path to the folder to watch.
-     * <p>
      * Stages:
      * (0) Check if parameter file is accessible and good.
-     * (1) xxx
-     * (2) Check if files already exist in HDFS -- if so, stop the job or just remove these files? (imo stop)
-     * (3) Check if .dat & .des files are both present
+     * (1) Check if files have the right names.
+     * (2) Check if .dat & .des files are both present
+     * (3) Check if files already exist in HDFS -- if so, stop the job or just remove these files? (imo stop)
      * (4) Check if types present in .des files are allowed into the datalake
-     * <p>
      * Error code:
      * (0) => x
      * (1) => x
@@ -54,8 +52,7 @@ class IntegrationChecks {
 
         stg.showStage(2);
 
-        List<Path> listOfPathsStage2 = stg.filterFilesAlreadyExistingHdfs(dirPath, jvp.hdfsDir, reportName);
-
+        List<Path> listOfPathsStage2 = stg.filterFilesWithoutDatDes(listOfPathsStage1, reportName);
         System.out.println("INFO: Stage 2, list of files that are going to stage 3: ");
         for (Path p : listOfPathsStage2) {
             System.out.println(p.toUri());
@@ -63,11 +60,13 @@ class IntegrationChecks {
 
         stg.showStage(3);
 
-        List<Path> listOfPathsStage3 = stg.filterFilesWithoutDatDes(listOfPathsStage2, reportName);
+        List<Path> listOfPathsStage3 = stg.filterFilesAlreadyExistingHdfs(listOfPathsStage2, jvp.hdfsDir, reportName);
+
         System.out.println("INFO: Stage 3, list of files that are going to stage 4: ");
         for (Path p : listOfPathsStage3) {
             System.out.println(p.toUri());
         }
+
 
         stg.showStage(4);
 

@@ -27,8 +27,8 @@ class StageFunctions {
         String stageDes = "";
         if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
         else if (stageNbr == 1) stageDes = "Check if all files have the right name.";
-        else if (stageNbr == 2) stageDes = "Check if any file already exists in the datalake.";
-        else if (stageNbr == 3) stageDes = "Check if all files are here (.dat & .des).";
+        else if (stageNbr == 2) stageDes = "Check if all files are here (.dat & .des).";
+        else if (stageNbr == 3) stageDes = "Check if any file already exists in the datalake.";
         else if (stageNbr == 4) stageDes = "Check if all types in the .des file are accepted in the datalake.";
 
         System.out.println("\n" +
@@ -40,7 +40,7 @@ class StageFunctions {
 
     /**
      * STAGE 0
-     *
+     * Check if the parameter file is readable and has right types.
      * @param tableParamPath
      * @param reportName
      * @throws IOException
@@ -85,7 +85,7 @@ class StageFunctions {
 
     /**
      * Stage 1
-     *
+     * Check if the name of the files follows the right rules.
      * @param listOfPath
      * @param appParamPath
      * @param reportName
@@ -154,59 +154,7 @@ class StageFunctions {
 
     /**
      * STAGE 2
-     *
-     * @param parentPath
-     * @param hdfsPath
-     * @return
-     * @throws IOException
-     */
-    List<Path> filterFilesAlreadyExistingHdfs(Path parentPath, Path hdfsPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
-
-        List<Path> listOfFilesToIntegrate = mf.getFilesPath(parentPath);
-
-        List<Path> listOfPathStage2 = new ArrayList<>();
-
-        List<String> listOfFileNamesHDFS = mf.getFilesPath(hdfsPath).stream().map(Path::getName).collect(Collectors.toList());
-
-        List<Path> listOfFilesInDatalake = new ArrayList<>();
-
-        System.out.println(listOfFileNamesHDFS);
-
-        for (Path p : listOfFilesToIntegrate) {
-
-            if (listOfFileNamesHDFS.contains(p.getName())) {
-
-                listOfFilesInDatalake.add(p);
-
-            } else {
-
-                listOfPathStage2.add(p);
-            }
-        }
-
-        if (!listOfFileNamesHDFS.isEmpty()) {
-
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";2;KO;101");
-
-            String commentary = listOfFilesInDatalake.stream().map(Path::getName).distinct().collect(Collectors.toList()) + " already exist in the datalake.";
-
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "KO", "101", commentary);
-            mf.writeInReport(reportName, line);
-
-        } else {
-
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";1;OK;");
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "OK", "", "");
-
-            mf.writeInReport(reportName, line);
-        }
-
-        return listOfPathStage2;
-    }
-
-    /**
-     * STAGE 3
-     *
+     * Check when there's a .des file there's also a .dat file (and vice-versa)
      * @param listOfPath
      * @param reportName
      * @return
@@ -216,7 +164,7 @@ class StageFunctions {
      */
     List<Path> filterFilesWithoutDatDes(List<Path> listOfPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
-        List<Path> listOfPathStage3 = new ArrayList<>();
+        List<Path> listOfPathStage2 = new ArrayList<>();
 
         List<String> flag = new ArrayList<>();
         List<String> commentary = new ArrayList<>();
@@ -231,7 +179,7 @@ class StageFunctions {
             if (condDat && condDes) {
 
                 System.out.println(path.getName() + " is good!");
-                listOfPathStage3.add(path);
+                listOfPathStage2.add(path);
 
             } else if (condDat) {
 
@@ -254,13 +202,66 @@ class StageFunctions {
 
         if (flag.isEmpty()) {
 
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "3", "OK", "", "");
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";3;OK;");
+            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "OK", "", "");
+            String line = jvp.dateFormatForInside.format(jvp.date).concat(";2;OK;");
             mf.writeInReport(reportName, line);
         } else {
 
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "3", "KO", flag.get(0), commentary.toString());
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";3;KO;" + flag.get(0));
+            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "KO", flag.get(0), commentary.toString());
+            String line = jvp.dateFormatForInside.format(jvp.date).concat(";2;KO;" + flag.get(0));
+            mf.writeInReport(reportName, line);
+        }
+
+        return listOfPathStage2;
+    }
+
+    /**
+     * STAGE 3
+     * Check if the files already exist in the datalake HDFS environment.
+     * @param listOfPath
+     * @param hdfsPath
+     * @param reportName
+     * @return
+     * @throws IOException
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     */
+    List<Path> filterFilesAlreadyExistingHdfs(List<Path> listOfPath, Path hdfsPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+
+        List<Path> listOfPathStage3 = new ArrayList<>();
+
+        List<String> listOfFileNamesHDFS = mf.getFilesPath(hdfsPath).stream().map(Path::getName).collect(Collectors.toList());
+
+        List<Path> listOfFilesInDatalake = new ArrayList<>();
+
+        System.out.println(listOfFileNamesHDFS);
+
+        for (Path p : listOfPath) {
+
+            if (listOfFileNamesHDFS.contains(p.getName())) {
+
+                listOfFilesInDatalake.add(p);
+
+            } else {
+
+                listOfPathStage3.add(p);
+            }
+        }
+
+        if (!listOfFilesInDatalake.isEmpty()) {
+
+            String line = jvp.dateFormatForInside.format(jvp.date).concat(";3;KO;101");
+
+            String commentary = listOfFilesInDatalake.stream().map(Path::getName).distinct().collect(Collectors.toList()) + " already exist in the datalake.";
+
+            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "3", "KO", "101", commentary);
+            mf.writeInReport(reportName, line);
+
+        } else {
+
+            String line = jvp.dateFormatForInside.format(jvp.date).concat(";3;OK;");
+            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "3", "OK", "", "");
+
             mf.writeInReport(reportName, line);
         }
 
@@ -269,7 +270,7 @@ class StageFunctions {
 
     /**
      * STAGE 4
-     *
+     * Check if the .des file has allowed type.
      * @param listOfPaths
      * @param reportName
      * @return
@@ -311,9 +312,6 @@ class StageFunctions {
             jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "4", "OK", "", "");
 
         } else {
-
-            System.out.println("Amount of types to change: " + listOfFilesToRemove.size());
-            System.out.println("Types to change: " + listOfFilesToRemove);
 
             String line = jvp.dateFormatForInside.format(jvp.date).concat(";4;KO;100");
             mf.writeInReport(reportName, line);

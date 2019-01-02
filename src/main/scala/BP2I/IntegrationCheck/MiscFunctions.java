@@ -1,6 +1,5 @@
 package BP2I.IntegrationCheck;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -42,35 +41,6 @@ class MiscFunctions {
         }
 
         return listOfPath;
-    }
-
-    /**
-     * Goal: return the amount of usable (.dat and .des) files in a directory.
-     * @param dirPath
-     * @return
-     * @throws IOException
-     */
-    int getAmountOfFiles(Path dirPath) throws IOException {
-
-        List<Path> listOfFilesPath = getFilesPath(dirPath);
-
-        List<String> listOfFilesNames = new ArrayList<>();
-
-        for (Path path : listOfFilesPath) {
-
-            List<String> separatedFilesPath = Lists.reverse(
-                    Arrays.asList(
-                            path.toUri().getRawPath()
-                                    .replace("[", "").replace("]", "")
-                                    .split("/")));
-
-            listOfFilesNames.add(separatedFilesPath.get(0));
-        }
-
-        List<String> filteredListOfFilesNames = listOfFilesNames.stream()
-                .filter(x -> x.contains(".dat") || x.contains(".des")).collect(Collectors.toList());
-
-        return filteredListOfFilesNames.size();
     }
 
     /**
