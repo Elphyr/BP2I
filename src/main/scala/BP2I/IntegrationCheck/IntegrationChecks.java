@@ -67,7 +67,6 @@ class IntegrationChecks {
             System.out.println(p.toUri());
         }
 
-
         stg.showStage(4);
 
         List<Path> listOfPathsStage4 = stg.filterFilesWithoutAllowedTypes(listOfPathsStage3, reportName);

@@ -154,7 +154,7 @@ class StageFunctions {
 
     /**
      * STAGE 2
-     * Check when there's a .des file there's also a .dat file (and vice-versa)
+     * Check when there's a .des file there's also a .dat file (and vice-versa).
      * @param listOfPath
      * @param reportName
      * @return
@@ -205,6 +205,7 @@ class StageFunctions {
             jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "OK", "", "");
             String line = jvp.dateFormatForInside.format(jvp.date).concat(";2;OK;");
             mf.writeInReport(reportName, line);
+
         } else {
 
             jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "KO", flag.get(0), commentary.toString());

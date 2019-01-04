@@ -132,9 +132,12 @@ object HiveFunctions {
     */
   def adaptTypes(types: List[String]): List[String] = {
 
-    types.map { case "nvarchar" => "STRING" ; case "varchar" => "STRING" ; case "char" => "STRING" ; case "nchar" => "STRING" ;
-    case "binary" => "STRING" ; case "varbinary" => "STRING" ; case "timestamp" => "STRING" ; case "datetime" => "STRING" ;
-    case "ntext" => "STRING"; case "image" => "STRING" ; case "money" => "DOUBLE" ; case x => x.toUpperCase }
+    types.map { case "char" => "STRING" ; case "nvarchar" => "STRING" ; case "binary" => "STRING" ; case "ntext" => "STRING" ;
+    case x => x.toUpperCase }
+
+//    types.map { case "nvarchar" => "STRING" ; case "varchar" => "STRING" ; case "char" => "STRING" ; case "nchar" => "STRING" ;
+//    case "binary" => "STRING" ; case "varbinary" => "STRING" ; case "timestamp" => "STRING" ; case "datetime" => "STRING" ;
+//    case "ntext" => "STRING"; case "image" => "STRING" ; case "money" => "DOUBLE" ; case x => x.toUpperCase }
   }
 
   /**
