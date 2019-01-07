@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 class MiscFunctions {
 
-    List<Path> getFilesPath(Path path) throws IOException {
+    static List<Path> getFilesPath(Path path) throws IOException {
 
         Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(conf);
@@ -48,7 +48,7 @@ class MiscFunctions {
      * @param listOfPaths
      * @return
      */
-    Path getDesFilePath(List<Path> listOfPaths) {
+    static Path getDesFilePath(List<Path> listOfPaths) {
 
         List<String> listOfFiles = new ArrayList<>();
 
@@ -68,7 +68,7 @@ class MiscFunctions {
      * @return
      * @throws IOException
      */
-    List<String> getTypesFromDesFile(String fileAbsolutePath) throws IOException {
+    static List<String> getTypesFromDesFile(String fileAbsolutePath) throws IOException {
 
         File file = new File(fileAbsolutePath);
 
@@ -94,7 +94,7 @@ class MiscFunctions {
      * @return
      * @throws IOException
      */
-    List<String> getFileNameFromParameter(String paramPath) throws IOException {
+    static List<String> getFileNameFromParameter(String paramPath) throws IOException {
 
         File file = new File(paramPath);
 
@@ -120,7 +120,7 @@ class MiscFunctions {
      * @return
      * @throws IOException
      */
-    List<String> getTypesFromParameter(String paramPath) throws IOException {
+    static List<String> getTypesFromParameter(String paramPath) throws IOException {
 
         File file = new File(paramPath);
 
@@ -148,9 +148,9 @@ class MiscFunctions {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    String initializeReport(String[] args) throws IOException, SQLException, ClassNotFoundException {
+    static String initializeReport(String[] args) throws IOException, SQLException, ClassNotFoundException {
 
-        String reportName = Arrays.asList(args).get(2) + "_" + new JavaParam().dateFormatForOutside.format(new JavaParam().date);
+        String reportName = Arrays.asList(args).get(2) + "_" + JavaParam.dateFormatForOutside.format(JavaParam.date);
 
         java.nio.file.Path file = Paths.get(reportName);
 
@@ -159,12 +159,12 @@ class MiscFunctions {
         List<String> logColumns = Collections.singletonList("date;stage;result;error_code");
         Files.write(file, logColumns, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 
-        new JDBCFunctions().dropTable(reportName);
+        JDBCFunctions.dropTable(reportName);
 
         return reportName;
     }
 
-    void writeInReport(String reportName, String line) throws IOException {
+    static void writeInReport(String reportName, String line) throws IOException {
 
         java.nio.file.Path file = Paths.get(reportName);
 
@@ -173,7 +173,7 @@ class MiscFunctions {
         Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
-    void moveToGood(List<Path> goodPaths, String goodDir) throws IOException {
+    static void moveToGood(List<Path> goodPaths, String goodDir) throws IOException {
 
         for (Path p : goodPaths) {
 
@@ -183,7 +183,7 @@ class MiscFunctions {
         }
     }
 
-    void moveToBad(List<Path> badPaths, List<Path> goodPaths, String badDir) throws IOException {
+    static void moveToBad(List<Path> badPaths, List<Path> goodPaths, String badDir) throws IOException {
 
         for (Path p : badPaths) {
 

@@ -5,7 +5,7 @@ import java.sql.*;
 
 class JDBCFunctions {
 
-    private Connection JDBCConnect() throws ClassNotFoundException, SQLException {
+    static private Connection JDBCConnect() throws ClassNotFoundException, SQLException {
 
         Class.forName("org.postgresql.Driver");
 
@@ -18,7 +18,7 @@ class JDBCFunctions {
         return con;
     }
 
-    void dropTable(String tableName) throws SQLException, ClassNotFoundException {
+    static void dropTable(String tableName) throws SQLException, ClassNotFoundException {
 
         Connection con = JDBCConnect();
 
@@ -26,7 +26,7 @@ class JDBCFunctions {
         dropTable.executeUpdate();
     }
 
-    void writeStageResultIntoTable(String tableName, String date, String stage, String result, String errorCode, String commentary) throws ClassNotFoundException, SQLException {
+    static void writeStageResultIntoTable(String tableName, String date, String stage, String result, String errorCode, String commentary) throws ClassNotFoundException, SQLException {
 
         Connection con = JDBCConnect();
 

@@ -8,9 +8,15 @@ import java.util.List;
 
 class IntegrationChecks {
 
-    private MiscFunctions mf = new MiscFunctions();
-    private StageFunctions stg = new StageFunctions();
-    private JavaParam jvp = new JavaParam();
+    private IntegrationProperties prp;
+
+    {
+        try {
+            prp = new IntegrationProperties();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Notes.
@@ -33,51 +39,51 @@ class IntegrationChecks {
 
         String[] args = new String[] {dirPath.toString(), parameterPath.toString(), appName};
 
-        String reportName = mf.initializeReport(args);
+        String reportName = MiscFunctions.initializeReport(args);
 
-        stg.showStage(0);
+        StageFunctions.showStage(0);
 
-        stg.checkTypesInParameter(parameterPath, reportName);
+        StageFunctions.checkTypesInParameter(parameterPath, reportName);
 
-        stg.showStage(1);
+        StageFunctions.showStage(1);
 
-        List<Path> listOfPathsStage0 = mf.getFilesPath(dirPath);
+        List<Path> listOfPathsStage0 = MiscFunctions.getFilesPath(dirPath);
 
-        List<Path> listOfPathsStage1 = stg.filerFilesWrongName(listOfPathsStage0, new Path("/home/raphael/Documents/Lincoln/BP2I/parameter_table/application_reftec"), reportName);
+        List<Path> listOfPathsStage1 = StageFunctions.filerFilesWrongName(listOfPathsStage0, new Path(prp.appParamDir), reportName);
 
         System.out.println("INFO: Stage 1, list of files that are going to stage 2: ");
         for (Path p : listOfPathsStage1) {
             System.out.println(p.toUri());
         }
 
-        stg.showStage(2);
+        StageFunctions.showStage(2);
 
-        List<Path> listOfPathsStage2 = stg.filterFilesWithoutDatDes(listOfPathsStage1, reportName);
+        List<Path> listOfPathsStage2 = StageFunctions.filterFilesWithoutDatDes(listOfPathsStage1, reportName);
         System.out.println("INFO: Stage 2, list of files that are going to stage 3: ");
         for (Path p : listOfPathsStage2) {
             System.out.println(p.toUri());
         }
 
-        stg.showStage(3);
+        StageFunctions.showStage(3);
 
-        List<Path> listOfPathsStage3 = stg.filterFilesAlreadyExistingHdfs(listOfPathsStage2, jvp.hdfsDir, reportName);
+        List<Path> listOfPathsStage3 = StageFunctions.filterFilesAlreadyExistingHdfs(listOfPathsStage2, new Path(prp.hdfsDir), reportName);
 
         System.out.println("INFO: Stage 3, list of files that are going to stage 4: ");
         for (Path p : listOfPathsStage3) {
             System.out.println(p.toUri());
         }
 
-        stg.showStage(4);
+        StageFunctions.showStage(4);
 
-        List<Path> listOfPathsStage4 = stg.filterFilesWithoutAllowedTypes(listOfPathsStage3, reportName);
+        List<Path> listOfPathsStage4 = StageFunctions.filterFilesWithoutAllowedTypes(listOfPathsStage3, reportName);
 
         System.out.println("INFO: Stage 4, list of files that are going to stage 5: ");
         for (Path p : listOfPathsStage4) {
             System.out.println(p.toUri());
         }
 
-        mf.moveToGood(listOfPathsStage4, "/home/raphael/Documents/Lincoln/BP2I/good");
+        MiscFunctions.moveToGood(listOfPathsStage4, prp.goodDir);
 
-        mf.moveToBad(listOfPathsStage0, listOfPathsStage4, "/home/raphael/Documents/Lincoln/BP2I/bad");
+        MiscFunctions.moveToBad(listOfPathsStage0, listOfPathsStage4, prp.badDir);
     }
 }

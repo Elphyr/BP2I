@@ -14,15 +14,11 @@ import java.util.stream.Collectors;
 
 class StageFunctions {
 
-    private MiscFunctions mf = new MiscFunctions();
-    private JDBCFunctions jdbc = new JDBCFunctions();
-    private JavaParam jvp = new JavaParam();
-
     /**
      * Show the stage on the screen.
      * @param stageNbr
      */
-    void showStage(int stageNbr) {
+    static void showStage(int stageNbr) {
 
         String stageDes = "";
              if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
@@ -47,15 +43,15 @@ class StageFunctions {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    void checkTypesInParameter(Path tableParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    static void checkTypesInParameter(Path tableParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
-        List<String> typesFromParameter = mf.getTypesFromParameter(tableParamPath.toUri().getRawPath());
+        List<String> typesFromParameter = MiscFunctions.getTypesFromParameter(tableParamPath.toUri().getRawPath());
 
         List<String> listOfRefusedTypes = new ArrayList<>();
 
         for (String type : typesFromParameter) {
 
-            if (!jvp.acceptedTypes.contains(type)) {
+            if (!JavaParam.acceptedTypes.contains(type)) {
 
                 listOfRefusedTypes.add(type);
             }
@@ -64,9 +60,9 @@ class StageFunctions {
         if (listOfRefusedTypes.isEmpty()) {
 
             System.out.println("Types are fine in the parameter file.");
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";0;OK;");
-            mf.writeInReport(reportName, line);
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "0", "OK", "", "");
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";0;OK;");
+            MiscFunctions.writeInReport(reportName, line);
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "0", "OK", "", "");
 
         } else {
 
@@ -76,9 +72,9 @@ class StageFunctions {
 
             String commentary = "Types to change: " + listOfRefusedTypes;
 
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";0;KO;100");
-            mf.writeInReport(reportName, line);
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "0", "KO", "100", commentary);
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";0;KO;100");
+            MiscFunctions.writeInReport(reportName, line);
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "0", "KO", "100", commentary);
         }
     }
 
@@ -91,9 +87,9 @@ class StageFunctions {
      * @return
      * @throws IOException
      */
-    List<Path> filerFilesWrongName(List<Path> listOfPath, Path appParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    static List<Path> filerFilesWrongName(List<Path> listOfPath, Path appParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
-        List<String> listOfExpectedFileNames = mf.getFileNameFromParameter(appParamPath.toUri().getRawPath());
+        List<String> listOfExpectedFileNames = MiscFunctions.getFileNameFromParameter(appParamPath.toUri().getRawPath());
 
         List<Path> listOfPathStage1 = new ArrayList<>();
 
@@ -134,15 +130,15 @@ class StageFunctions {
 
         if (listOfWrongNamedFiles.isEmpty()) {
 
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";1;OK;");
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "1", "OK", "", "");
-            mf.writeInReport(reportName, line);
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";1;OK;");
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "1", "OK", "", "");
+            MiscFunctions.writeInReport(reportName, line);
 
         } else {
 
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";1;KO;xxx");
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "1", "KO", "xxx", "");
-            mf.writeInReport(reportName, line);
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";1;KO;xxx");
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "1", "KO", "xxx", "");
+            MiscFunctions.writeInReport(reportName, line);
 
             System.out.println("MISTAKE HERE: FILE NAME NOT FOUND IN PARAMETER TABLE!");
             System.out.println(listOfWrongNamedFiles);
@@ -161,7 +157,7 @@ class StageFunctions {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    List<Path> filterFilesWithoutDatDes(List<Path> listOfPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    static List<Path> filterFilesWithoutDatDes(List<Path> listOfPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<Path> listOfPathStage2 = new ArrayList<>();
 
@@ -170,7 +166,7 @@ class StageFunctions {
 
         for (Path path : listOfPath) {
 
-            List<String> files = mf.getFilesPath(path.getParent()).stream().map(Path::toString).collect(Collectors.toList());
+            List<String> files = MiscFunctions.getFilesPath(path.getParent()).stream().map(Path::toString).collect(Collectors.toList());
 
             Boolean condDat = !Collections2.filter(files, Predicates.containsPattern(".dat")).isEmpty();
             Boolean condDes = !Collections2.filter(files, Predicates.containsPattern(".des")).isEmpty();
@@ -201,15 +197,15 @@ class StageFunctions {
 
         if (flag.isEmpty()) {
 
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "OK", "", "");
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";2;OK;");
-            mf.writeInReport(reportName, line);
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "2", "OK", "", "");
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";2;OK;");
+            MiscFunctions.writeInReport(reportName, line);
 
         } else {
 
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "2", "KO", flag.get(0), commentary.toString());
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";2;KO;" + flag.get(0));
-            mf.writeInReport(reportName, line);
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "2", "KO", flag.get(0), commentary.toString());
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";2;KO;" + flag.get(0));
+            MiscFunctions.writeInReport(reportName, line);
         }
 
         return listOfPathStage2;
@@ -226,11 +222,11 @@ class StageFunctions {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    List<Path> filterFilesAlreadyExistingHdfs(List<Path> listOfPath, Path hdfsPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    static List<Path> filterFilesAlreadyExistingHdfs(List<Path> listOfPath, Path hdfsPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<Path> listOfPathStage3 = new ArrayList<>();
 
-        List<String> listOfFileNamesHDFS = mf.getFilesPath(hdfsPath).stream().map(Path::getName).collect(Collectors.toList());
+        List<String> listOfFileNamesHDFS = MiscFunctions.getFilesPath(hdfsPath).stream().map(Path::getName).collect(Collectors.toList());
 
         List<Path> listOfFilesInDatalake = new ArrayList<>();
 
@@ -250,19 +246,19 @@ class StageFunctions {
 
         if (!listOfFilesInDatalake.isEmpty()) {
 
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";3;KO;101");
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";3;KO;101");
 
             String commentary = listOfFilesInDatalake.stream().map(Path::getName).distinct().collect(Collectors.toList()) + " already exist in the datalake.";
 
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "3", "KO", "101", commentary);
-            mf.writeInReport(reportName, line);
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "3", "KO", "101", commentary);
+            MiscFunctions.writeInReport(reportName, line);
 
         } else {
 
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";3;OK;");
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "3", "OK", "", "");
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";3;OK;");
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "3", "OK", "", "");
 
-            mf.writeInReport(reportName, line);
+            MiscFunctions.writeInReport(reportName, line);
         }
 
         return listOfPathStage3;
@@ -278,7 +274,7 @@ class StageFunctions {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    static List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<String> listOfFilesToRemove = new ArrayList<>();
 
@@ -286,13 +282,13 @@ class StageFunctions {
 
         for (Path path : listOfPaths) {
 
-            Path desPath = mf.getDesFilePath(mf.getFilesPath(path.getParent()));
+            Path desPath = MiscFunctions.getDesFilePath(MiscFunctions.getFilesPath(path.getParent()));
 
-            List<String> listOfTypes = mf.getTypesFromDesFile(desPath.toUri().getRawPath());
+            List<String> listOfTypes = MiscFunctions.getTypesFromDesFile(desPath.toUri().getRawPath());
 
             for (String type : listOfTypes) {
 
-                if (!jvp.acceptedTypes.contains(type)) {
+                if (!JavaParam.acceptedTypes.contains(type)) {
 
                     listOfFilesToRemove.add(path.getName());
                 }
@@ -307,15 +303,15 @@ class StageFunctions {
         if (listOfFilesToRemove.isEmpty()) {
 
             System.out.println("Types are fine in all tables.");
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";4;OK;");
-            mf.writeInReport(reportName, line);
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "4", "OK", "", "");
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";4;OK;");
+            MiscFunctions.writeInReport(reportName, line);
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "4", "OK", "", "");
 
         } else {
 
-            String line = jvp.dateFormatForInside.format(jvp.date).concat(";4;KO;100");
-            mf.writeInReport(reportName, line);
-            jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "4", "KO", "100", "");
+            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";4;KO;100");
+            MiscFunctions.writeInReport(reportName, line);
+            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "4", "KO", "100", "");
         }
 
         return listOfPathStage4;

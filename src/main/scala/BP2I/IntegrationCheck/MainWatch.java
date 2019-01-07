@@ -12,7 +12,9 @@ import static java.nio.file.StandardWatchEventKinds.*;
 
 public class MainWatch {
 
-    private static void watchDirectoryPath(Path path) {
+    private static void watchDirectoryPath(Path path) throws IOException {
+
+        IntegrationProperties prop = new IntegrationProperties();
 
         // Sanity check - Check if path is a folder
         try {
@@ -62,7 +64,7 @@ public class MainWatch {
 
                             System.out.println("New path created: " + newPath);
 
-                            org.apache.hadoop.fs.Path tableParamPath = new org.apache.hadoop.fs.Path("/home/raphael/Documents/Lincoln/BP2I/parameter_table/table_reftec");
+                            org.apache.hadoop.fs.Path tableParamPath = new org.apache.hadoop.fs.Path(prop.tabParamDir);
 
                             org.apache.hadoop.fs.Path dirPath = new org.apache.hadoop.fs.Path(path.toAbsolutePath().toString() + "/" + newPath.toString());
 
@@ -103,9 +105,11 @@ public class MainWatch {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         File dir = new File(args[0]);
+
+        Environment.setEnvironment(args);
 
         watchDirectoryPath(dir.toPath());
     }
