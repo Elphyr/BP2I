@@ -74,7 +74,9 @@ object MiscFunctions {
 
   /**
     * Goal: take a simple dataframe and transpose it.
+    *
     * @param dataFrame
+    * @param tableName
     * @return
     */
   def transposeDF(dataFrame: DataFrame, tableName: String): DataFrame = {
