@@ -1,4 +1,4 @@
-package BP2I.AppLayer
+package BP2I.IntegrationDatalake.AppLayer
 
 object AppLayerQueryBank {
 

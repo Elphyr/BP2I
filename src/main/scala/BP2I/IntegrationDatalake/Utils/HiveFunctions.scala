@@ -1,8 +1,8 @@
-package BP2I.Utils
+package BP2I.IntegrationDatalake.Utils
 
-import BP2I.Utils.FileFunctions.{deleteTmpDirectory, getFileInformation}
-import BP2I.Utils.MiscFunctions._
-import BP2I.Utils.Param.{logger, spark}
+import BP2I.IntegrationDatalake.Utils.FileFunctions.{deleteTmpDirectory, getFileInformation}
+import BP2I.IntegrationDatalake.Utils.MiscFunctions._
+import BP2I.IntegrationDatalake.Utils.Param.{logger, spark}
 import org.apache.spark.sql.DataFrame
 
 

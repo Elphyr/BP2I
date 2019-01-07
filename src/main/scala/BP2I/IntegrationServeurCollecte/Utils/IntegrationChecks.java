@@ -1,22 +1,14 @@
-package BP2I.IntegrationCheck;
+package BP2I.IntegrationServeurCollecte.Utils;
 
+import BP2I.IntegrationServeurCollecte.Func.MiscFunctions;
+import BP2I.IntegrationServeurCollecte.Func.StageFunctions;
 import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-class IntegrationChecks {
-
-    private IntegrationProperties prp;
-
-    {
-        try {
-            prp = new IntegrationProperties();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+public class IntegrationChecks {
 
     /**
      * Notes.
@@ -35,9 +27,9 @@ class IntegrationChecks {
      * (3) => 110 & 111
      * (4) => 103
      */
-    void integrationChecksSingleFolder(Path dirPath, Path parameterPath, String appName) throws SQLException, IOException, ClassNotFoundException {
+    public static void integrationChecksSingleFolder(Path dirPath, Path parameterPath, String appName) throws SQLException, IOException, ClassNotFoundException {
 
-        String[] args = new String[] {dirPath.toString(), parameterPath.toString(), appName};
+        String[] args = new String[]{dirPath.toString(), parameterPath.toString(), appName};
 
         String reportName = MiscFunctions.initializeReport(args);
 
@@ -49,7 +41,7 @@ class IntegrationChecks {
 
         List<Path> listOfPathsStage0 = MiscFunctions.getFilesPath(dirPath);
 
-        List<Path> listOfPathsStage1 = StageFunctions.filerFilesWrongName(listOfPathsStage0, new Path(prp.appParamDir), reportName);
+        List<Path> listOfPathsStage1 = StageFunctions.filerFilesWrongName(listOfPathsStage0, new Path(IntegrationProperties.appParamDir), reportName);
 
         System.out.println("INFO: Stage 1, list of files that are going to stage 2: ");
         for (Path p : listOfPathsStage1) {
@@ -66,7 +58,7 @@ class IntegrationChecks {
 
         StageFunctions.showStage(3);
 
-        List<Path> listOfPathsStage3 = StageFunctions.filterFilesAlreadyExistingHdfs(listOfPathsStage2, new Path(prp.hdfsDir), reportName);
+        List<Path> listOfPathsStage3 = StageFunctions.filterFilesAlreadyExistingHdfs(listOfPathsStage2, new Path(IntegrationProperties.hdfsDir), reportName);
 
         System.out.println("INFO: Stage 3, list of files that are going to stage 4: ");
         for (Path p : listOfPathsStage3) {
@@ -82,8 +74,8 @@ class IntegrationChecks {
             System.out.println(p.toUri());
         }
 
-        MiscFunctions.moveToGood(listOfPathsStage4, prp.goodDir);
+        MiscFunctions.moveToGood(listOfPathsStage4, IntegrationProperties.goodDir);
 
-        MiscFunctions.moveToBad(listOfPathsStage0, listOfPathsStage4, prp.badDir);
+        MiscFunctions.moveToBad(listOfPathsStage0, listOfPathsStage4, IntegrationProperties.badDir);
     }
 }

@@ -1,5 +1,6 @@
-package BP2I.IntegrationCheck;
+package BP2I.IntegrationServeurCollecte.Func;
 
+import BP2I.IntegrationServeurCollecte.Utils.IntegrationParams;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -23,9 +24,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class MiscFunctions {
+public class MiscFunctions {
 
-    static List<Path> getFilesPath(Path path) throws IOException {
+    public static List<Path> getFilesPath(Path path) throws IOException {
 
         Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(conf);
@@ -45,6 +46,7 @@ class MiscFunctions {
 
     /**
      * Goal: from a list of paths, return the .des file path.
+     *
      * @param listOfPaths
      * @return
      */
@@ -64,6 +66,7 @@ class MiscFunctions {
 
     /**
      * Goal: read the .des file and extract all the types in a list.
+     *
      * @param fileAbsolutePath
      * @return
      * @throws IOException
@@ -90,6 +93,7 @@ class MiscFunctions {
 
     /**
      * Goal: read the APPLICATION parameter file and extract all table (file) names in a list.
+     *
      * @param paramPath
      * @return
      * @throws IOException
@@ -116,6 +120,7 @@ class MiscFunctions {
 
     /**
      * Goal: read the TABLE parameter file and extract all types in a list.
+     *
      * @param paramPath
      * @return
      * @throws IOException
@@ -142,15 +147,16 @@ class MiscFunctions {
 
     /**
      * Goal: initialize the report by creating a Postgres table.
+     *
      * @param args
      * @return
      * @throws IOException
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    static String initializeReport(String[] args) throws IOException, SQLException, ClassNotFoundException {
+    public static String initializeReport(String[] args) throws IOException, SQLException, ClassNotFoundException {
 
-        String reportName = Arrays.asList(args).get(2) + "_" + JavaParam.dateFormatForOutside.format(JavaParam.date);
+        String reportName = Arrays.asList(args).get(2) + "_" + IntegrationParams.dateFormatForOutside.format(IntegrationParams.date);
 
         java.nio.file.Path file = Paths.get(reportName);
 
@@ -173,7 +179,7 @@ class MiscFunctions {
         Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
-    static void moveToGood(List<Path> goodPaths, String goodDir) throws IOException {
+    public static void moveToGood(List<Path> goodPaths, String goodDir) throws IOException {
 
         for (Path p : goodPaths) {
 
@@ -183,7 +189,7 @@ class MiscFunctions {
         }
     }
 
-    static void moveToBad(List<Path> badPaths, List<Path> goodPaths, String badDir) throws IOException {
+    public static void moveToBad(List<Path> badPaths, List<Path> goodPaths, String badDir) throws IOException {
 
         for (Path p : badPaths) {
 

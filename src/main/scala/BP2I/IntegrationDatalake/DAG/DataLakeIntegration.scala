@@ -1,8 +1,8 @@
-package BP2I.DAG
+package BP2I.IntegrationDatalake.DAG
 
-import BP2I.Utils.Arguments
-import BP2I.Utils.FileFunctions.getListOfDirectories
-import BP2I.Utils.Param.{logger, spark}
+import BP2I.IntegrationDatalake.Utils.Arguments
+import BP2I.IntegrationDatalake.Utils.FileFunctions.getListOfDirectories
+import BP2I.IntegrationDatalake.Utils.Param.{logger, spark}
 
 object DataLakeIntegration {
 

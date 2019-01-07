@@ -1,6 +1,6 @@
-package BP2I.Utils
+package BP2I.IntegrationDatalake.Utils
 
-import BP2I.Utils.Param.{fileSystem, logger, spark}
+import BP2I.IntegrationDatalake.Utils.Param.{fileSystem, logger, spark}
 import org.apache.hadoop.fs.{FileStatus, Path}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.input_file_name

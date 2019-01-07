@@ -1,4 +1,8 @@
-package BP2I.IntegrationCheck;
+package BP2I.IntegrationServeurCollecte.Main;
+
+import BP2I.IntegrationServeurCollecte.Utils.Environment;
+import BP2I.IntegrationServeurCollecte.Utils.IntegrationChecks;
+import BP2I.IntegrationServeurCollecte.Utils.IntegrationProperties;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,11 +14,9 @@ import java.util.Objects;
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
 import static java.nio.file.StandardWatchEventKinds.*;
 
-public class MainWatch {
+public class Watcher {
 
-    private static void watchDirectoryPath(Path path) throws IOException {
-
-        IntegrationProperties prop = new IntegrationProperties();
+    private static void watchDirectoryPath(Path path) {
 
         // Sanity check - Check if path is a folder
         try {
@@ -64,14 +66,16 @@ public class MainWatch {
 
                             System.out.println("New path created: " + newPath);
 
-                            org.apache.hadoop.fs.Path tableParamPath = new org.apache.hadoop.fs.Path(prop.tabParamDir);
-
                             org.apache.hadoop.fs.Path dirPath = new org.apache.hadoop.fs.Path(path.toAbsolutePath().toString() + "/" + newPath.toString());
 
                             if (Objects.requireNonNull(new File(dirPath.toUri().getRawPath()).list()).length != 0) {
 
                                 try {
-                                    new IntegrationChecks().integrationChecksSingleFolder(dirPath, tableParamPath, dirPath.getParent().getName());
+
+                                    IntegrationChecks.integrationChecksSingleFolder(
+                                            dirPath,
+                                            new org.apache.hadoop.fs.Path(IntegrationProperties.tabParamDir),
+                                            dirPath.getParent().getName());
 
                                 } catch (SQLException | ClassNotFoundException e) {
                                     e.printStackTrace();
@@ -81,11 +85,13 @@ public class MainWatch {
                                 System.out.println("WARNING: no file found inside directory: '" + dirPath.toString() + "', please check.");
                             }
                         }
+
                     } else if (ENTRY_MODIFY == kind) {
 
                         Path newPath = ((WatchEvent<Path>) watchEvent).context();
 
                         System.out.println("New path modified: " + newPath);
+
                     } else if (ENTRY_DELETE == kind) {
 
                         Path newPath = ((WatchEvent<Path>) watchEvent).context();
@@ -107,10 +113,9 @@ public class MainWatch {
 
     public static void main(String[] args) throws IOException {
 
-        File dir = new File(args[0]);
-
         Environment.setEnvironment(args);
+        IntegrationProperties.setPropValues();
 
-        watchDirectoryPath(dir.toPath());
+        watchDirectoryPath(new File(args[0]).toPath());
     }
 }

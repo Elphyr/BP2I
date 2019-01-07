@@ -1,5 +1,6 @@
-package BP2I.IntegrationCheck;
+package BP2I.IntegrationServeurCollecte.Func;
 
+import BP2I.IntegrationServeurCollecte.Utils.IntegrationParams;
 import org.apache.hadoop.fs.Path;
 import org.spark_project.guava.base.Predicates;
 import org.spark_project.guava.collect.Collections2;
@@ -12,16 +13,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class StageFunctions {
+public class StageFunctions {
 
     /**
      * Show the stage on the screen.
+     *
      * @param stageNbr
      */
-    static void showStage(int stageNbr) {
+    public static void showStage(int stageNbr) {
 
         String stageDes = "";
-             if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
+        if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
         else if (stageNbr == 1) stageDes = "Check if all files have the right name.";
         else if (stageNbr == 2) stageDes = "Check if both .dat & .des files are present.";
         else if (stageNbr == 3) stageDes = "Check if any file already exists in the datalake.";
@@ -37,13 +39,14 @@ class StageFunctions {
     /**
      * STAGE 0
      * Check if the parameter file is readable and has right types.
+     *
      * @param tableParamPath
      * @param reportName
      * @throws IOException
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    static void checkTypesInParameter(Path tableParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    public static void checkTypesInParameter(Path tableParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<String> typesFromParameter = MiscFunctions.getTypesFromParameter(tableParamPath.toUri().getRawPath());
 
@@ -51,7 +54,7 @@ class StageFunctions {
 
         for (String type : typesFromParameter) {
 
-            if (!JavaParam.acceptedTypes.contains(type)) {
+            if (!IntegrationParams.acceptedTypes.contains(type)) {
 
                 listOfRefusedTypes.add(type);
             }
@@ -60,9 +63,9 @@ class StageFunctions {
         if (listOfRefusedTypes.isEmpty()) {
 
             System.out.println("Types are fine in the parameter file.");
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";0;OK;");
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";0;OK;");
             MiscFunctions.writeInReport(reportName, line);
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "0", "OK", "", "");
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "0", "OK", "", "");
 
         } else {
 
@@ -72,22 +75,23 @@ class StageFunctions {
 
             String commentary = "Types to change: " + listOfRefusedTypes;
 
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";0;KO;100");
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";0;KO;100");
             MiscFunctions.writeInReport(reportName, line);
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "0", "KO", "100", commentary);
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "0", "KO", "100", commentary);
         }
     }
 
     /**
      * Stage 1
      * Check if the name of the files follows the right rules.
+     *
      * @param listOfPath
      * @param appParamPath
      * @param reportName
      * @return
      * @throws IOException
      */
-    static List<Path> filerFilesWrongName(List<Path> listOfPath, Path appParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    public static List<Path> filerFilesWrongName(List<Path> listOfPath, Path appParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<String> listOfExpectedFileNames = MiscFunctions.getFileNameFromParameter(appParamPath.toUri().getRawPath());
 
@@ -130,14 +134,14 @@ class StageFunctions {
 
         if (listOfWrongNamedFiles.isEmpty()) {
 
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";1;OK;");
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "1", "OK", "", "");
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";1;OK;");
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "1", "OK", "", "");
             MiscFunctions.writeInReport(reportName, line);
 
         } else {
 
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";1;KO;xxx");
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "1", "KO", "xxx", "");
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";1;KO;xxx");
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "1", "KO", "xxx", "");
             MiscFunctions.writeInReport(reportName, line);
 
             System.out.println("MISTAKE HERE: FILE NAME NOT FOUND IN PARAMETER TABLE!");
@@ -150,6 +154,7 @@ class StageFunctions {
     /**
      * STAGE 2
      * Check when there's a .des file there's also a .dat file (and vice-versa).
+     *
      * @param listOfPath
      * @param reportName
      * @return
@@ -157,7 +162,7 @@ class StageFunctions {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    static List<Path> filterFilesWithoutDatDes(List<Path> listOfPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    public static List<Path> filterFilesWithoutDatDes(List<Path> listOfPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<Path> listOfPathStage2 = new ArrayList<>();
 
@@ -197,14 +202,14 @@ class StageFunctions {
 
         if (flag.isEmpty()) {
 
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "2", "OK", "", "");
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";2;OK;");
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "2", "OK", "", "");
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";2;OK;");
             MiscFunctions.writeInReport(reportName, line);
 
         } else {
 
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "2", "KO", flag.get(0), commentary.toString());
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";2;KO;" + flag.get(0));
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "2", "KO", flag.get(0), commentary.toString());
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";2;KO;" + flag.get(0));
             MiscFunctions.writeInReport(reportName, line);
         }
 
@@ -214,6 +219,7 @@ class StageFunctions {
     /**
      * STAGE 3
      * Check if the files already exist in the datalake HDFS environment.
+     *
      * @param listOfPath
      * @param hdfsPath
      * @param reportName
@@ -222,7 +228,7 @@ class StageFunctions {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    static List<Path> filterFilesAlreadyExistingHdfs(List<Path> listOfPath, Path hdfsPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    public static List<Path> filterFilesAlreadyExistingHdfs(List<Path> listOfPath, Path hdfsPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<Path> listOfPathStage3 = new ArrayList<>();
 
@@ -246,17 +252,17 @@ class StageFunctions {
 
         if (!listOfFilesInDatalake.isEmpty()) {
 
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";3;KO;101");
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";3;KO;101");
 
             String commentary = listOfFilesInDatalake.stream().map(Path::getName).distinct().collect(Collectors.toList()) + " already exist in the datalake.";
 
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "3", "KO", "101", commentary);
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "3", "KO", "101", commentary);
             MiscFunctions.writeInReport(reportName, line);
 
         } else {
 
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";3;OK;");
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "3", "OK", "", "");
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";3;OK;");
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "3", "OK", "", "");
 
             MiscFunctions.writeInReport(reportName, line);
         }
@@ -267,6 +273,7 @@ class StageFunctions {
     /**
      * STAGE 4
      * Check if the .des file has allowed type.
+     *
      * @param listOfPaths
      * @param reportName
      * @return
@@ -274,7 +281,7 @@ class StageFunctions {
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    static List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths, String reportName) throws IOException, SQLException, ClassNotFoundException {
+    public static List<Path> filterFilesWithoutAllowedTypes(List<Path> listOfPaths, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
         List<String> listOfFilesToRemove = new ArrayList<>();
 
@@ -288,7 +295,7 @@ class StageFunctions {
 
             for (String type : listOfTypes) {
 
-                if (!JavaParam.acceptedTypes.contains(type)) {
+                if (!IntegrationParams.acceptedTypes.contains(type)) {
 
                     listOfFilesToRemove.add(path.getName());
                 }
@@ -303,15 +310,15 @@ class StageFunctions {
         if (listOfFilesToRemove.isEmpty()) {
 
             System.out.println("Types are fine in all tables.");
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";4;OK;");
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";4;OK;");
             MiscFunctions.writeInReport(reportName, line);
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "4", "OK", "", "");
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "4", "OK", "", "");
 
         } else {
 
-            String line = JavaParam.dateFormatForInside.format(JavaParam.date).concat(";4;KO;100");
+            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";4;KO;100");
             MiscFunctions.writeInReport(reportName, line);
-            JDBCFunctions.writeStageResultIntoTable(reportName, JavaParam.dateFormatForInside.format(JavaParam.date), "4", "KO", "100", "");
+            JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "4", "KO", "100", "");
         }
 
         return listOfPathStage4;

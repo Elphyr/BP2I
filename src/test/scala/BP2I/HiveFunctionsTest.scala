@@ -1,6 +1,6 @@
 package BP2I
 
-import BP2I.Utils.HiveFunctions.{readDesFile, createExternalTable}
+import BP2I.IntegrationDatalake.Utils.HiveFunctions.{readDesFile, createExternalTable}
 import com.holdenkarau.spark.testing.DataFrameSuiteBase
 import org.scalatest.FlatSpec
 

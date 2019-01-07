@@ -1,4 +1,4 @@
-package BP2I.Utils
+package BP2I.IntegrationDatalake.Utils
 
 import scopt.OptionParser
 

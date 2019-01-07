@@ -1,4 +1,4 @@
-package BP2I.IntegrationCheck;
+package BP2I.IntegrationServeurCollecte.Func;
 
 import java.sql.*;
 
