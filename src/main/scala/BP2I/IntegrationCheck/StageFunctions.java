@@ -25,9 +25,9 @@ class StageFunctions {
     void showStage(int stageNbr) {
 
         String stageDes = "";
-        if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
+             if (stageNbr == 0) stageDes = "Check if types written in parameter table are usable in the datalake.";
         else if (stageNbr == 1) stageDes = "Check if all files have the right name.";
-        else if (stageNbr == 2) stageDes = "Check if all files are here (.dat & .des).";
+        else if (stageNbr == 2) stageDes = "Check if both .dat & .des files are present.";
         else if (stageNbr == 3) stageDes = "Check if any file already exists in the datalake.";
         else if (stageNbr == 4) stageDes = "Check if all types in the .des file are accepted in the datalake.";
 
@@ -49,11 +49,11 @@ class StageFunctions {
      */
     void checkTypesInParameter(Path tableParamPath, String reportName) throws IOException, SQLException, ClassNotFoundException {
 
-        List<String> types = mf.getTypesFromParameter(tableParamPath.toUri().getRawPath());
+        List<String> typesFromParameter = mf.getTypesFromParameter(tableParamPath.toUri().getRawPath());
 
         List<String> listOfRefusedTypes = new ArrayList<>();
 
-        for (String type : types) {
+        for (String type : typesFromParameter) {
 
             if (!jvp.acceptedTypes.contains(type)) {
 
@@ -79,7 +79,6 @@ class StageFunctions {
             String line = jvp.dateFormatForInside.format(jvp.date).concat(";0;KO;100");
             mf.writeInReport(reportName, line);
             jdbc.writeStageResultIntoTable(reportName, jvp.dateFormatForInside.format(jvp.date), "0", "KO", "100", commentary);
-
         }
     }
 
