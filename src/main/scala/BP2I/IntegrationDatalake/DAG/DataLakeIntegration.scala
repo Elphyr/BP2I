@@ -3,6 +3,7 @@ package BP2I.IntegrationDatalake.DAG
 import BP2I.IntegrationDatalake.Utils.Arguments
 import BP2I.IntegrationDatalake.Utils.FileFunctions.getListOfDirectories
 import BP2I.IntegrationDatalake.Utils.Param.{logger, spark}
+import BP2I.IntegrationDatalake.Utils.SparkProperties.setPropValues
 
 object DataLakeIntegration {
 
@@ -10,13 +11,15 @@ object DataLakeIntegration {
 
     val timeBegin = System.nanoTime
 
+    val arguments = Arguments(args)
+
+    setPropValues(arguments.environment.get)
+
     spark.sparkContext.setLogLevel("WARN")
 
-    val argument = Arguments(args)
+    if (arguments.parentFolder.isDefined) {
 
-    if (argument.parentFolder.isDefined) {
-
-      val listOfDirectories = getListOfDirectories(argument.parentFolder.get)
+      val listOfDirectories = getListOfDirectories(arguments.parentFolder.get)
 
       listOfDirectories.foreach(IntegrationRawData.main)
 
@@ -24,9 +27,9 @@ object DataLakeIntegration {
 
       logger.warn(s"===> JOB SUCCESSFUL, CLOSING AFTER $jobDuration SECONDS <===")
 
-    } else if (argument.folder.isDefined) {
+    } else if (arguments.folder.isDefined) {
 
-      IntegrationRawData.main(argument.folder.get)
+      IntegrationRawData.main(arguments.folder.get)
 
     } else logger.warn("Please put an argument")
   }

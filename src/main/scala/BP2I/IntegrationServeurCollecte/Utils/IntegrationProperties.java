@@ -28,10 +28,10 @@ public class IntegrationProperties {
 
         prop.load(inputStream);
 
-        appParamDir = prop.getProperty("param.appParamDir");
-        tabParamDir = prop.getProperty("param.tabParamDir");
-        goodDir = prop.getProperty("param.goodDir");
-        badDir = prop.getProperty("param.badDir");
-        hdfsDir = prop.getProperty("param.hdfsDir");
+        appParamDir = prop.getProperty("param.int.appParamDir");
+        tabParamDir = prop.getProperty("param.int.tabParamDir");
+        goodDir = prop.getProperty("param.int.goodDir");
+        badDir = prop.getProperty("param.int.badDir");
+        hdfsDir = prop.getProperty("param.int.hdfsDir");
     }
 }

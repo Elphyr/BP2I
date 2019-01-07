@@ -2,7 +2,8 @@ package BP2I.IntegrationDatalake.Utils
 
 import scopt.OptionParser
 
-case class Arguments(folder: Option[String] = None,
+case class Arguments(environment: Option[String] = None,
+                     folder: Option[String] = None,
                      parentFolder: Option[String] = None)
 
 object Arguments {
@@ -12,6 +13,12 @@ object Arguments {
     val parser: OptionParser[Arguments] = new scopt.OptionParser[Arguments]("scopt") {
 
       head("scopt", "3.x")
+
+      opt[String]('e', "environment")
+        .action((x, c) => c.copy(environment = Some(x)))
+        .text("the working environment: 'local', 'dev', 'qualif', 'prod'")
+        .required()
+
 
       opt[String]('f', "folder")
         .action((x, c) => c.copy(folder = Some(x)))
