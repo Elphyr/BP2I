@@ -63,8 +63,6 @@ public class StageFunctions {
         if (listOfRefusedTypes.isEmpty()) {
 
             System.out.println("Types are fine in the parameter file.");
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";0;OK;");
-            MiscFunctions.writeInReport(reportName, line);
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "0", "OK", "", "");
 
         } else {
@@ -75,8 +73,6 @@ public class StageFunctions {
 
             String commentary = "Types to change: " + listOfRefusedTypes;
 
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";0;KO;100");
-            MiscFunctions.writeInReport(reportName, line);
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "0", "KO", "100", commentary);
         }
     }
@@ -134,15 +130,11 @@ public class StageFunctions {
 
         if (listOfWrongNamedFiles.isEmpty()) {
 
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";1;OK;");
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "1", "OK", "", "");
-            MiscFunctions.writeInReport(reportName, line);
 
         } else {
 
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";1;KO;xxx");
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "1", "KO", "xxx", "");
-            MiscFunctions.writeInReport(reportName, line);
 
             System.out.println("MISTAKE HERE: FILE NAME NOT FOUND IN PARAMETER TABLE!");
             System.out.println(listOfWrongNamedFiles);
@@ -203,14 +195,10 @@ public class StageFunctions {
         if (flag.isEmpty()) {
 
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "2", "OK", "", "");
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";2;OK;");
-            MiscFunctions.writeInReport(reportName, line);
 
         } else {
 
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "2", "KO", flag.get(0), commentary.toString());
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";2;KO;" + flag.get(0));
-            MiscFunctions.writeInReport(reportName, line);
         }
 
         return listOfPathStage2;
@@ -252,19 +240,12 @@ public class StageFunctions {
 
         if (!listOfFilesInDatalake.isEmpty()) {
 
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";3;KO;101");
-
             String commentary = listOfFilesInDatalake.stream().map(Path::getName).distinct().collect(Collectors.toList()) + " already exist in the datalake.";
-
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "3", "KO", "101", commentary);
-            MiscFunctions.writeInReport(reportName, line);
 
         } else {
 
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";3;OK;");
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "3", "OK", "", "");
-
-            MiscFunctions.writeInReport(reportName, line);
         }
 
         return listOfPathStage3;
@@ -310,14 +291,10 @@ public class StageFunctions {
         if (listOfFilesToRemove.isEmpty()) {
 
             System.out.println("Types are fine in all tables.");
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";4;OK;");
-            MiscFunctions.writeInReport(reportName, line);
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "4", "OK", "", "");
 
         } else {
 
-            String line = IntegrationParams.dateFormatForInside.format(IntegrationParams.date).concat(";4;KO;100");
-            MiscFunctions.writeInReport(reportName, line);
             JDBCFunctions.writeStageResultIntoTable(reportName, IntegrationParams.dateFormatForInside.format(IntegrationParams.date), "4", "KO", "100", "");
         }
 

@@ -15,21 +15,22 @@ object IntegrationRawData {
     logger.warn("Step 1: initializing table name and .des path")
     val desPath = args + "/*.des"
     val datPath = args
-    logger.warn("Step 1: files red: " + "\n" + s"$args")
+    logger.warn("Step 1: files red: " + "\n" + s"$desPath")
 
     logger.warn("Step 2: read the .des file and create Hive query accordingly")
     val (newDataTableInformation, primaryColumn, hiveQuery) = readDesFile(desPath)
 
     val newDataTableApplication = newDataTableInformation.head
-    val newDataTableName = newDataTableInformation.takeRight(4).mkString("_").replaceAll("-", "")
+    val newDataTableFullName = newDataTableInformation.takeRight(4).mkString("_").replaceAll("-", "")
 
-    spark.sql(s"CREATE DATABASE IF NOT EXISTS $newDataTableApplication LOCATION '$warehouseLocation/${newDataTableApplication.toLowerCase()}'")
+    spark.sql(s"CREATE DATABASE IF NOT EXISTS $newDataTableApplication LOCATION " +
+      s"'$warehouseLocation/${newDataTableApplication.toLowerCase()}'")
     spark.catalog.setCurrentDatabase(s"${newDataTableApplication.toLowerCase()}")
 
     logger.warn("Step 3: creating external table")
-    createExternalTable(newDataTableApplication, newDataTableName, hiveQuery, datPath)
+    createExternalTable(newDataTableApplication, newDataTableFullName, hiveQuery, datPath)
 
-    val newDataTableDF = spark.sql(s"SELECT * FROM $newDataTableApplication.$newDataTableName")
+    val newDataTableDF = spark.sql(s"SELECT * FROM $newDataTableApplication.$newDataTableFullName")
 
     val tableName = newDataTableInformation(1).replaceAll("-", "")
 

@@ -2,7 +2,6 @@ package BP2I.IntegrationServeurCollecte.Func;
 
 import java.sql.*;
 
-
 class JDBCFunctions {
 
     static private Connection JDBCConnect() throws ClassNotFoundException, SQLException {

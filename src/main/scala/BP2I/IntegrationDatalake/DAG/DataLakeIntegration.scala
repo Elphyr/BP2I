@@ -24,12 +24,14 @@ object DataLakeIntegration {
       listOfDirectories.foreach(IntegrationRawData.main)
 
       val jobDuration = (System.nanoTime - timeBegin) / 1e9d
-
       logger.warn(s"===> JOB SUCCESSFUL, CLOSING AFTER $jobDuration SECONDS <===")
 
     } else if (arguments.folder.isDefined) {
 
       IntegrationRawData.main(arguments.folder.get)
+
+      val jobDuration = (System.nanoTime - timeBegin) / 1e9d
+      logger.warn(s"===> JOB SUCCESSFUL, CLOSING AFTER $jobDuration SECONDS <===")
 
     } else logger.warn("Please put an argument")
   }

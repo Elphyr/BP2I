@@ -21,5 +21,5 @@ public class IntegrationParams {
     public static DateFormat dateFormatForInside = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     public static DateFormat dateFormatForOutside = new SimpleDateFormat("yyyyMMdd'_'HHmmss");
 
-    public static List<String> environments = Arrays.asList("local", "dev", "qualif", "prod");
+    static List<String> environments = Arrays.asList("local.properties", "dev.properties", "qualif.properties", "prod.properties");
 }

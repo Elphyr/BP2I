@@ -9,18 +9,16 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.spark_project.guava.base.Predicates;
 import org.spark_project.guava.collect.Collections2;
+import org.spark_project.guava.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -156,27 +154,17 @@ public class MiscFunctions {
      */
     public static String initializeReport(String[] args) throws IOException, SQLException, ClassNotFoundException {
 
-        String reportName = Arrays.asList(args).get(2) + "_" + IntegrationParams.dateFormatForOutside.format(IntegrationParams.date);
+        String tableName = Lists.reverse(Arrays.asList(Arrays.asList(args).get(0).split("/"))).get(0).replace("-", "");
+
+        String reportName = Arrays.asList(args).get(2) + "_" + tableName + "_" + IntegrationParams.dateFormatForOutside.format(IntegrationParams.date);
 
         java.nio.file.Path file = Paths.get(reportName);
 
         Files.deleteIfExists(file);
 
-        List<String> logColumns = Collections.singletonList("date;stage;result;error_code");
-        Files.write(file, logColumns, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-
         JDBCFunctions.dropTable(reportName);
 
         return reportName;
-    }
-
-    static void writeInReport(String reportName, String line) throws IOException {
-
-        java.nio.file.Path file = Paths.get(reportName);
-
-        List<String> lines = Collections.singletonList(line);
-
-        Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
 
     public static void moveToGood(List<Path> goodPaths, String goodDir) throws IOException {
