@@ -1,5 +1,7 @@
 package BP2I.IntegrationDatalake.Func
 
+import BP2I.IntegrationDatalake.Func.FileFunctions.{deleteTmpDirectory, getFileInformation}
+import BP2I.IntegrationDatalake.Func.MiscFunctions.{checkForDeletes, checkForUpdates, unionDifferentTables}
 import BP2I.IntegrationDatalake.Utils.Param.{logger, spark}
 import BP2I.IntegrationDatalake.Utils.SparkProperties
 import org.apache.spark.sql.DataFrame
