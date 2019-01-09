@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -157,10 +156,6 @@ public class MiscFunctions {
         String tableName = Lists.reverse(Arrays.asList(Arrays.asList(args).get(0).split("/"))).get(0).replace("-", "");
 
         String reportName = Arrays.asList(args).get(2) + "_" + tableName + "_" + IntegrationParams.dateFormatForOutside.format(IntegrationParams.date);
-
-        java.nio.file.Path file = Paths.get(reportName);
-
-        Files.deleteIfExists(file);
 
         JDBCFunctions.dropTable(reportName);
 

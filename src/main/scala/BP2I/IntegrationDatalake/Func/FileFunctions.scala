@@ -1,4 +1,4 @@
-package BP2I.IntegrationDatalake.Utils
+package BP2I.IntegrationDatalake.Func
 
 import BP2I.IntegrationDatalake.Utils.Param.{fileSystem, logger, spark}
 import org.apache.hadoop.fs.{FileStatus, Path}

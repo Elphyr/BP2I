@@ -1,7 +1,7 @@
 package BP2I.Reporting
 
-import BP2I.IntegrationDatalake.Utils.FileFunctions.deleteTmpDirectory
-import BP2I.IntegrationDatalake.Utils.MiscFunctions.transposeDF
+import BP2I.IntegrationDatalake.Func.FileFunctions.deleteTmpDirectory
+import BP2I.IntegrationDatalake.Func.MiscFunctions.transposeDF
 import BP2I.IntegrationDatalake.Utils.Param.{reportLocation, spark}
 import org.apache.spark.sql.DataFrame
 
