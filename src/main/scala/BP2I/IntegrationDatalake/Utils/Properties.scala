@@ -3,7 +3,7 @@ package BP2I.IntegrationDatalake.Utils
 import java.io.FileInputStream
 import java.util.Properties
 
-object SparkProperties {
+object Properties {
 
   var sparkMaster: String = _
   var hiveTmpDir: String = _

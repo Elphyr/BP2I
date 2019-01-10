@@ -2,12 +2,12 @@ package BP2I.IntegrationDatalake.Utils
 
 import java.io.File
 
-import BP2I.IntegrationDatalake.Utils.SparkProperties.sparkMaster
+import BP2I.IntegrationDatalake.Utils.Properties.sparkMaster
 import org.apache.hadoop.fs.FileSystem
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession
 
-object Param {
+object Params {
 
   val warehouseLocation: String = new File("./datalake_bp2i/normalized_layer").getAbsolutePath
 

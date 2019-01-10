@@ -1,7 +1,7 @@
 package BP2I.IntegrationDatalake.Func
 
 import BP2I.IntegrationDatalake.AppLayer.{AppLayerQueryBank, AppLayerSchemaBank}
-import BP2I.IntegrationDatalake.Utils.Param.{logger, spark}
+import BP2I.IntegrationDatalake.Utils.Params.{logger, spark}
 import org.apache.spark.sql.functions.{col, lit}
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Column, DataFrame}

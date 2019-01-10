@@ -1,6 +1,6 @@
 package BP2I.IntegrationDatalake.DAG
 
-import BP2I.IntegrationDatalake.Utils.Param.spark
+import BP2I.IntegrationDatalake.Utils.Params.spark
 
 object IntegrationSendErrorMsg {
 

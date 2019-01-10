@@ -1,7 +1,7 @@
 package BP2I.IntegrationDatalake.DAG
 
 import BP2I.IntegrationDatalake.Func.HiveFunctions._
-import BP2I.IntegrationDatalake.Utils.Param.{logger, spark, warehouseLocation}
+import BP2I.IntegrationDatalake.Utils.Params.{logger, spark, warehouseLocation}
 import BP2I.Reporting.IntegrationReport.writeReportRawLayer
 
 object IntegrationRawData {

@@ -1,7 +1,7 @@
 package BP2I.IntegrationDatalake.Utils
 
 import BP2I.IntegrationDatalake.Func.MiscFunctions.checkSchemaAppLayer
-import BP2I.IntegrationDatalake.Utils.Param.spark
+import BP2I.IntegrationDatalake.Utils.Params.spark
 import org.apache.spark.sql.functions.{base64, coalesce, from_unixtime, instr}
 
 object AppLayerFunctions {
