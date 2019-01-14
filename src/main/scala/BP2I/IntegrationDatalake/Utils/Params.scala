@@ -2,7 +2,7 @@ package BP2I.IntegrationDatalake.Utils
 
 import java.io.File
 
-import BP2I.IntegrationDatalake.Utils.Properties.sparkMaster
+import BP2I.IntegrationDatalake.Utils.ScalaProperties.sparkMaster
 import org.apache.hadoop.fs.FileSystem
 import org.apache.log4j.Logger
 import org.apache.spark.sql.SparkSession

@@ -1,9 +1,8 @@
 package BP2I.IntegrationDatalake.Utils
 
-import java.io.FileInputStream
 import java.util.Properties
 
-object Properties {
+object ScalaProperties {
 
   var sparkMaster: String = _
   var hiveTmpDir: String = _
@@ -12,7 +11,7 @@ object Properties {
 
     val prop = new Properties()
 
-    prop.load(new FileInputStream("src/main/resources/" + environment + ".properties"))
+    prop.load(this.getClass.getClassLoader.getResourceAsStream(environment + ".properties"))
 
     sparkMaster = prop.getProperty("param.spark.master")
     hiveTmpDir = prop.getProperty("param.hive.tmpDir")

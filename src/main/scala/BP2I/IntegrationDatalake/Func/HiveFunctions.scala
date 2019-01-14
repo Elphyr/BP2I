@@ -3,7 +3,7 @@ package BP2I.IntegrationDatalake.Func
 import BP2I.IntegrationDatalake.Func.FileFunctions.{deleteTmpDirectory, getFileInformation}
 import BP2I.IntegrationDatalake.Func.MiscFunctions.{checkForDeletes, checkForUpdates, unionDifferentTables}
 import BP2I.IntegrationDatalake.Utils.Params.{logger, spark}
-import BP2I.IntegrationDatalake.Utils.Properties
+import BP2I.IntegrationDatalake.Utils.ScalaProperties
 import org.apache.spark.sql.DataFrame
 
 object HiveFunctions {
@@ -164,7 +164,7 @@ object HiveFunctions {
     */
   def feedNewDataIntoTable(tableApplication: String, tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame) = {
 
-    val tmpDir = Properties.hiveTmpDir
+    val tmpDir = ScalaProperties.hiveTmpDir
 
     deleteTmpDirectory(tmpDir)
 

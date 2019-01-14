@@ -3,7 +3,7 @@ package BP2I.IntegrationDatalake.DAG
 import BP2I.IntegrationDatalake.Func.FileFunctions.getListOfDirectories
 import BP2I.IntegrationDatalake.Utils.Arguments
 import BP2I.IntegrationDatalake.Utils.Params.{logger, spark}
-import BP2I.IntegrationDatalake.Utils.Properties.setPropValues
+import BP2I.IntegrationDatalake.Utils.ScalaProperties.setPropValues
 
 object DataLakeIntegration {
 
