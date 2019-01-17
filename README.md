@@ -14,6 +14,8 @@ BP2I datalake.
 
 ### Changelog
 
+0.5 => add Java integration job and properties files (17/01/2019)
+
 0.4 => modify how job works to manage new spec (25/11/2018)
 
 0.3 => add job report readable file
