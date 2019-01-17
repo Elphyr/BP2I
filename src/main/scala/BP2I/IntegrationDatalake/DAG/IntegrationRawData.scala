@@ -14,7 +14,6 @@ object IntegrationRawData {
 
     logger.warn("Step 1: initializing table name and .des path")
     val desPath = args + "/*.des"
-    val datPath = args
     logger.warn("Step 1: files red: " + "\n" + s"$desPath")
 
     logger.warn("Step 2: read the .des file and create Hive query accordingly")
@@ -28,7 +27,7 @@ object IntegrationRawData {
     spark.catalog.setCurrentDatabase(s"${newDataTableApplication.toLowerCase()}")
 
     logger.warn("Step 3: creating external table")
-    createExternalTable(newDataTableApplication, newDataTableFullName, hiveQuery, datPath)
+    createExternalTable(newDataTableApplication, newDataTableFullName, hiveQuery, args)
 
     val newDataTableDF = spark.sql(s"SELECT * FROM $newDataTableApplication.$newDataTableFullName")
 
