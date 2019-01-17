@@ -2,7 +2,7 @@ package BP2I.IntegrationDatalake.Func
 
 import BP2I.IntegrationDatalake.Func.FileFunctions.{deleteTmpDirectory, getFileInformation}
 import BP2I.IntegrationDatalake.Func.MiscFunctions.{checkForDeletes, checkForUpdates, unionDifferentTables}
-import BP2I.IntegrationDatalake.Utils.Params.{logger, spark}
+import BP2I.IntegrationDatalake.Utils.Params.{listOfDoubleTypes, listOfStringTypes, logger, spark}
 import BP2I.IntegrationDatalake.Utils.ScalaProperties
 import org.apache.spark.sql.DataFrame
 
@@ -61,21 +61,16 @@ object HiveFunctions {
     spark.sql(s"DROP TABLE IF EXISTS $tableApplication.$tableName")
 
     val format = dataFormat.toLowerCase() match {
-
       case "parquet" => "STORED AS PARQUET"
-
       case "orc" => "STORED AS ORC"
-
       case "csv" => "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
-
       case _ => logger.warn("Format must be either 'csv', 'parquet' or 'orc', chose 'csv' by default")
-
         "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
     }
 
     val dataDirPathFinal =
-    if (delTmpDir) dataDirPath + "/*.dat"
-    else dataDirPath
+      if (delTmpDir) dataDirPath + "/*.dat"
+      else dataDirPath
 
     val externalTableQuery = s"CREATE EXTERNAL TABLE $tableApplication.$tableName (" +
       s"${columnsAndTypes.mkString(", ")}) " +
@@ -100,15 +95,10 @@ object HiveFunctions {
     spark.sql(s"DROP TABLE IF EXISTS $tableApplication.$tableName")
 
     val format = dataFormat.toLowerCase() match {
-
       case "parquet" => "STORED AS PARQUET"
-
       case "orc" => "STORED AS ORC"
-
       case "csv" => "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
-
       case _ => logger.warn("Format must be either 'csv', 'parquet' or 'orc', chose 'csv' by default")
-
         "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
     }
 
@@ -130,9 +120,11 @@ object HiveFunctions {
     */
   def adaptTypes(types: List[String]): List[String] = {
 
-    types.map { case "nvarchar" => "STRING" ; case "varchar" => "STRING" ; case "char" => "STRING" ; case "nchar" => "STRING" ;
-    case "binary" => "STRING" ; case "varbinary" => "STRING" ; case "timestamp" => "STRING" ; case "datetime" => "STRING" ;
-    case "ntext" => "STRING"; case "image" => "STRING" ; case "money" => "DOUBLE" ; case x => x.toUpperCase }
+    types.map {
+      case x if listOfStringTypes.contains(x) => "STRING"
+      case x if listOfDoubleTypes.contains(x) => "DOUBLE"
+      case x => x.toUpperCase()
+    }
   }
 
   /**

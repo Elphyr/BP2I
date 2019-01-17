@@ -24,4 +24,9 @@ object Params {
   val fileSystem: FileSystem = FileSystem.get(spark.sparkContext.hadoopConfiguration)
 
   val logger: Logger = Logger.getLogger("BP2I")
+
+  val listOfStringTypes: Seq[String] = Seq("binary", "datetime", "image", "nchar", "ntext", "nvarchar", "varbinary",
+    "varchar", "timestamp")
+
+  val listOfDoubleTypes: Seq[String] = Seq("money")
 }

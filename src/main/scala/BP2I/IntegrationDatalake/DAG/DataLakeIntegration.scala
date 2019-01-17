@@ -17,6 +17,8 @@ object DataLakeIntegration {
 
     spark.sparkContext.setLogLevel("WARN")
 
+    spark.sql("drop database reftec cascade")
+
     if (arguments.parentFolder.isDefined) {
 
       val listOfDirectories = getListOfDirectories(arguments.parentFolder.get)
