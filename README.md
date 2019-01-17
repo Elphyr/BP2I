@@ -2,15 +2,18 @@
 BP2I datalake.
 
 ## SPARK SUBMIT
-   spark-submit --master yarn --deploy-mode client --num-executors 1  --driver-memory 8g --executor-memory 8g --class BP2I.IntegrationDatalake.DAG.DataLakeIntegration ./BP2I_Spark-0.2-jar-with-dependencies.jar -p "/user/lc61470/reftec_integration_test/"
+
+    /usr/hdp/current/spark2-client/bin/spark-submit --master yarn --deploy-mode client  --num-executors 3  --driver-memory 2g --executor-memory 2g --class BP2I.IntegrationDatalake.DAG.DataLakeIntegration ./BP2I_Spark-0.4-jar-with-dependencies.jar -p "/user/lc61470/reftec_full_extract/extract_01_19_v2/Datalake/Datalake" -e "dev"
 
 ## MVN BUILD
 
 ### With dependencies
-   mvn clean package
+
+    mvn clean package
 
 ### Without dependencies
-   mvn clean compile
+
+    mvn clean compile
 
 ### Changelog
 
