@@ -20,8 +20,6 @@ object HiveFunctions {
       .option("header", "true")
       .option("delimiter", ";")
       .csv(desPath)
-      .drop("IS_NULLABLE")
-    // TODO : remove it when reftec follows the specs
 
     val desDFColumnsName = desDF.columns.head
     val deDFColumnsType = desDF.columns(1)
