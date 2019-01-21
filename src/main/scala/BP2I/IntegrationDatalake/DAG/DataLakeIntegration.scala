@@ -17,7 +17,7 @@ object DataLakeIntegration {
 
     spark.sparkContext.setLogLevel("WARN")
 
-    if (arguments.environment.get == "local") spark.sql("drop database reftec cascade")
+    //if (arguments.environment.get == "local") spark.sql("drop database reftec cascade")
 
     if (arguments.parentFolder.isDefined) {
 

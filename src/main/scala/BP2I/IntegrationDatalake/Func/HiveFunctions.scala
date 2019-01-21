@@ -90,7 +90,7 @@ object HiveFunctions {
     * @param dataFormat
     * @return
     */
-  def createInternalTable(tableApplication: String, tableName: String, extTableName: String, columnsAndTypes: List[String], dataFormat: String = "csv"): DataFrame = {
+  def createInternalTable(tableApplication: String, tableName: String, extTableName: String, columnsAndTypes: List[String], dataFormat: String = "csv"): Unit = {
 
     spark.sql(s"DROP TABLE IF EXISTS $tableApplication.$tableName")
 
@@ -133,7 +133,7 @@ object HiveFunctions {
     * @param tableName
     * @param columnsAndTypes
     */
-  def dropNatureAction(dataFrame: DataFrame, tableApplication: String, tableName: String, columnsAndTypes: List[String]): DataFrame = {
+  def dropNatureAction(dataFrame: DataFrame, tableApplication: String, tableName: String, columnsAndTypes: List[String]): Unit = {
 
     val finalDF = dataFrame.drop("Nature_Action")
 
@@ -141,16 +141,17 @@ object HiveFunctions {
 
     spark.sql(s"DROP TABLE IF EXISTS $tableApplication.$tableName")
     spark.sql(s"CREATE TABLE $tableApplication.$tableName AS SELECT * FROM ${tableName}_tmp")
-
-    finalDF
   }
 
   /**
     * Goal: when you add information into a table, it checks if there are new columns and then merge both tables.
     * The past records without the new column have a 'null' put into the columns.
+    * @param tableApplication
     * @param tableName
     * @param newDataTable
+    * @param primaryColumn
     * @param columnsAndTypes
+    * @return
     */
   def feedNewDataIntoTable(tableApplication: String, tableName: String, newDataTable: DataFrame, primaryColumn: String, columnsAndTypes: List[String]): (DataFrame, DataFrame) = {
 
