@@ -25,7 +25,7 @@ object Params {
 
   val logger: Logger = Logger.getLogger("BP2I")
 
-  val listOfStringTypes: Seq[String] = Seq("binary", "datetime", "image", "nchar", "ntext", "nvarchar", "varbinary",
+  val listOfStringTypes: Seq[String] = Seq("binary", "char", "datetime", "image", "nchar", "ntext", "nvarchar", "varbinary",
     "varchar", "timestamp")
 
   val listOfDoubleTypes: Seq[String] = Seq("money")

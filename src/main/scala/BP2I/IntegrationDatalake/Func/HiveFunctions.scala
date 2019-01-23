@@ -118,7 +118,7 @@ object HiveFunctions {
     * @param types
     * @return
     */
-  def adaptTypes(types: List[String]): List[String] = {
+  def adaptTypes(types: Seq[String]): Seq[String] = {
 
     types.map {
       case x if listOfStringTypes.contains(x) => "STRING"

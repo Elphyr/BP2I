@@ -1,7 +1,5 @@
 package BP2I.IntegrationDatalake.Utils
 
-import scopt.OptionParser
-
 case class Arguments(environment: Option[String] = None,
                      folder: Option[String] = None,
                      parentFolder: Option[String] = None)
@@ -10,7 +8,7 @@ object Arguments {
 
   def apply(arguments: Seq[String]): Arguments = {
 
-    val parser: OptionParser[Arguments] = new scopt.OptionParser[Arguments]("scopt") {
+    val parser = new scopt.OptionParser[Arguments]("scopt") {
 
       head("scopt", "3.x")
 
@@ -22,11 +20,11 @@ object Arguments {
 
       opt[String]('f', "folder")
         .action((x, c) => c.copy(folder = Some(x)))
-        .text("if you want to initialize the Hive query on a single folder")
+        .text("if you want to integrate a single folder in the datalake")
 
       opt[String]('p', "parentFolder")
         .action((x, c) => c.copy(parentFolder = Some(x)))
-        .text("if you want to initialize the Hive query on a multiple folders by giving the parent folder")
+        .text("if you want to integrate multiple folders in the datalake by giving the parent folder")
     }
 
     parser.parse(arguments, Arguments()).get
