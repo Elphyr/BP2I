@@ -2,7 +2,7 @@ COLUMN_NAME;DATA_TYPE;COMMENT
 company_uuid;binary;
 parent_company_uuid;binary;
 company_name;nvarchar;
-inactive;int;;10
+inactive;int;
 description;nvarchar;
 company_type;int;
 alias;nvarchar;

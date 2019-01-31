@@ -63,7 +63,7 @@ object HiveFunctions {
     val format = dataFormat.toLowerCase() match {
       case "parquet" => "STORED AS PARQUET"
       case "orc" => "STORED AS ORC"
-      case "csv" => "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
+      case "csv" => """ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"""
       case _ => logger.warn("Format must be either 'csv', 'parquet' or 'orc', chose 'csv' by default")
         "ROW FORMAT DELIMITED FIELDS TERMINATED BY ';' STORED AS TEXTFILE"
     }

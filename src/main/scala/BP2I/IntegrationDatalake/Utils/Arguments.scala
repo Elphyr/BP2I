@@ -17,7 +17,6 @@ object Arguments {
         .text("the working environment: 'local', 'dev', 'qualif', 'prod'")
         .required()
 
-
       opt[String]('f', "folder")
         .action((x, c) => c.copy(folder = Some(x)))
         .text("if you want to integrate a single folder in the datalake")

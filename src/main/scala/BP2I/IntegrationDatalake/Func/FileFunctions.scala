@@ -35,14 +35,24 @@ object FileFunctions {
 
     val globFilePath = fileSystem.globStatus(datFilePath).map(_.getPath)
 
-    if (globFilePath.length >= 1) { true } else {
+    if (globFilePath.length >= 1) {
+
+      if (globFilePath.map(fileSystem.getContentSummary(_).getLength).forall(_ > 0)) {
+
+        true
+      } else {
+
+        logger.warn(s"==> WARNING: ${directory.getPath.toString.split("/").last} contains no or empty .dat file! <===")
+        logger.warn(s"==> WARNING: cancelling process for path: $datFilePath <===")
+        false
+      }
+    } else {
 
       logger.warn(s"==> WARNING: ${directory.getPath.toString.split("/").last} contains no or empty .dat file! <===")
-      logger.warn(s"==> WARNING : cancelling process for path: $datFilePath <===")
-
-      false }
-  }
-
+      logger.warn(s"==> WARNING: cancelling process for path: $datFilePath <===")
+      false
+      }
+    }
 
   /**
     * Goal: get the file name from the whole path and remove the extension (.des, .dat, etc.).

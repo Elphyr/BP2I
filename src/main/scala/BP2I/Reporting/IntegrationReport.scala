@@ -2,15 +2,15 @@ package BP2I.Reporting
 
 import BP2I.IntegrationDatalake.Func.FileFunctions.deleteTmpDirectory
 import BP2I.IntegrationDatalake.Func.MiscFunctions.transposeDF
-import BP2I.IntegrationDatalake.Utils.Params.{reportLocation, spark}
+import BP2I.IntegrationDatalake.Utils.Params.{logger, reportLocation, spark}
 import org.apache.spark.sql.DataFrame
 
 object IntegrationReport {
 
   /**
-    * Goal: write a complete report on what happened.
+    * Goal: write a complete human readable report on what happened.
     * 1. What was before: amount of lines, schema.
-    * 2. What was added: amount of lines, schema. Amount of Insert, Update and Delete.
+    * 2. What was added: amount of lines, schema. Amount of Insert, Update, Delete and Errors.
     * 3. What is now: amount of lines, schema.
     */
   def writeReportRawLayer(addedTableDF: DataFrame, newTableDF: DataFrame, tableInformation: Seq[String]): Unit = {
@@ -33,6 +33,9 @@ object IntegrationReport {
     val amountOfInsert = addedTableDF.filter($"Nature_Action" === "I").count()
     val amountOfUpdate = addedTableDF.filter($"Nature_Action" === "U").count()
     val amountOfDelete = addedTableDF.filter($"Nature_Action" === "D").count()
+    val amountOfErrors = addedTableDF.count() - (amountOfInsert + amountOfUpdate + amountOfDelete)
+
+    if (amountOfErrors > 0) logger.warn(s"Step 4: WARNING ERRORS FOUND IN TABLE $tableName")
 
     val amountOfLinesNow = newTableDF.count()
     val amountOfLinesOld = amountOfLinesNow - amountOfDelete
@@ -42,10 +45,11 @@ object IntegrationReport {
       s"Amount of Insert:                    $amountOfInsert",
       s"Amount of Update:                    $amountOfUpdate",
       s"Amount of Delete:                    $amountOfDelete",
+      s"Amount of Errors:                     $amountOfErrors",
       s"Amount of lines in table previously: $amountOfLinesOld",
       s"Amount of lines in table now:        $amountOfLinesNow",
       s"New schema:", newSchema))
-      .toDF.coalesce(1).write.mode("append").text(reportDir)
+      .toDF.coalesce(1).write.mode("overwrite").text(reportDir)
 
     val finalReport = if (newTableDF.columns.contains("summary")) {
 
