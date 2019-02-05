@@ -85,7 +85,7 @@ object FileFunctions {
     val fullFileName = dataFrame
       .select(input_file_name()).map(x => x.getString(0)).collect().toList.last
       .split("/").last
-      .replaceAll(extension, "")
+      .replaceAllLiterally(extension, "")
       .split("_")
 
     Seq(fullFileName.head, fullFileName(1), fullFileName(2), fullFileName(3), fullFileName.last)

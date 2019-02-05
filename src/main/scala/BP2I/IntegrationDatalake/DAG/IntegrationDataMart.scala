@@ -11,24 +11,24 @@ object IntegrationDataMart {
     val query = """Select
                   model_uuid id,
                   cacompany.company_name manufacturer_name,
-                  camodeldef.description description,
-                  camodeldef.inactive inactive,
-                  camodeldef.name model_name,
-                  camodeldef.z_autre_code other_code,
-                  camodeldef.z_code code,
+                  description description,
+                  inactive inactive,
+                  name model_name,
+                  z_autre_code other_code,
+                  z_code code,
                   coalesce(A.enum,0) bp2i_marketed,
                   coalesce(B.enum,0) cryptable,
+                  date_add('1970/01/01', z_date_maj_score/86400) score_modified_date,
                   zfamillehw.sym hw_family,
                   coalesce(C.enum,0) inventorible,
                   coalesce(D.enum,0) lot,
-                  camodeldef.z_model_asset asset_model,
+                  z_model_asset asset_model,
                   coalesce(E.enum,0) secondary_storage_product,
                   ztypologie.sym typology,
                   zvalobso.sym scoring,
-                  camodeldef.last_update_user reftec_last_update_user,
-                  camodeldef.last_update_date  tal_last_update_date
-                  from
-                  reftec.camodeldef
+                  last_update_user reftec_last_update_user,
+                  last_update_date  tal_last_update_date
+                  from reftec.camodeldef
                   inner Join reftec.cacompany On camodeldef.manufacturer_uuid = cacompany.company_uuid
                   left outer join reftec.booltab A on A.enum = camodeldef.z_com_bp2i
                   left outer join reftec.booltab B on B.enum = camodeldef.z_cryptable
