@@ -1,8 +1,7 @@
 package BP2I.IntegrationDatalake.Func
 
-import BP2I.IntegrationDatalake.Utils.Params.{logger, spark}
+import BP2I.IntegrationDatalake.Utils.Params.spark
 import org.apache.spark.sql.functions.{col, lit}
-import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Column, DataFrame}
 
 object MiscFunctions {
@@ -47,7 +46,7 @@ object MiscFunctions {
 
     val linesToDelete = dataFrame.filter($"Nature_Action" === "D")
       .select(primaryColumn)
-      .map(x => x.getString(0)).collect.toList
+      .collect().map(_(0)).toSeq
 
     val filteredDF = dataFrame.filter(!col(primaryColumn).isin(linesToDelete:_*))
 
@@ -92,60 +91,5 @@ object MiscFunctions {
       .withColumnRenamed("_2", "amountOfItems")
 
     transposedDataFrame
-  }
-
-  /**
-    * Goal: invoke right query from the query bank.
-    * @param appName
-    * @return
-    */
-  def getAppLayerQuery(appName: String): String = {
-
-    val appNameWQuery = appName + "Query"
-
-    val listOfQueries = AppLayerQueryBank.getClass.getDeclaredMethods.map(_.getName)
-
-    val rightQuery = listOfQueries.filter(_.equals(appNameWQuery)).head
-
-    AppLayerQueryBank.getClass.getDeclaredMethod(rightQuery).invoke(AppLayerQueryBank).asInstanceOf[String]
-  }
-
-  /**
-    * Goal: invoke right schema from the schema bank.
-    * @param appName
-    * @return
-    */
-  def getAppNameSchema(appName: String): StructType = {
-
-    val appNameWSchema = appName + "Schema"
-
-    val listOfSchemas = AppLayerSchemaBank.getClass.getDeclaredMethods.map(_.getName)
-
-    val rightSchema = listOfSchemas.filter(_.equals(appNameWSchema)).head
-
-    AppLayerSchemaBank.getClass.getDeclaredMethod(rightSchema).invoke(AppLayerSchemaBank).asInstanceOf[StructType]
-  }
-
-  /**
-    * Goal: check if the schema is still coherent with the one we already registered.
-    * @param dataFrame
-    * @param appName
-    */
-  def checkSchemaAppLayer(dataFrame: DataFrame, appName: String): Unit = {
-
-    val expectedSchema = getAppNameSchema(appName)
-
-  val actualSchema = dataFrame.schema
-
-    if (actualSchema.equals(expectedSchema)) {
-
-      logger.warn(s"===> Schema supplied for $appName does match the expected schema <===")
-
-    } else {
-
-      logger.warn(s"===> Schema supplied for $appName does NOT match the expected schema: update needed <===")
-      logger.warn(s"Expected schema: ${expectedSchema.printTreeString()}")
-      logger.warn(s"Received schema: ${actualSchema.printTreeString()}")
-    }
   }
 }

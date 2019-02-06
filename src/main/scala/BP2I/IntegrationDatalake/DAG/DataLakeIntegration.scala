@@ -16,7 +16,7 @@ object DataLakeIntegration {
     setPropValues(arguments.environment.get)
 
     spark.sparkContext.setLogLevel("WARN")
-    
+
     if (arguments.parentFolder.isDefined) {
 
       val listOfDirectories = getListOfDirectories(arguments.parentFolder.get)
