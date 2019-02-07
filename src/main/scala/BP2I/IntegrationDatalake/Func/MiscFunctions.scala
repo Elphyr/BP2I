@@ -69,7 +69,6 @@ object MiscFunctions {
     filteredDF
   }
 
-
   /**
     * Goal: take a simple dataframe and transpose it.
     *
