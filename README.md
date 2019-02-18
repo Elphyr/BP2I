@@ -1,5 +1,12 @@
 # BP2I Datalake integration job
-BP2I datalake.
+
+This job:
+
+1. Integrates files into the datalake from the Raw Layer.
+
+1. Creates Hive tables relative to those files ; or updates existing tables in the Have Layer.
+
+1. Creates Hive tables relative to the datamart model ; or updates existing tables in the App Layer.
 
 ## SPARK SUBMIT
 
@@ -16,6 +23,8 @@ BP2I datalake.
     mvn clean compile
 
 ### Changelog
+
+0.6 => add the QueryBank for datamart update as a job (18/02/2019)
 
 0.5 => add Java integration job and properties files (17/01/2019)
 

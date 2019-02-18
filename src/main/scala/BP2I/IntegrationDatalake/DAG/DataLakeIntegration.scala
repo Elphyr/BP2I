@@ -1,5 +1,6 @@
 package BP2I.IntegrationDatalake.DAG
 
+import BP2I.AppLayer.QueryBank.dataMartUpdate
 import BP2I.IntegrationDatalake.Func.FileFunctions.getListOfDirectories
 import BP2I.IntegrationDatalake.Utils.Arguments
 import BP2I.IntegrationDatalake.Utils.Params.{logger, spark}
@@ -22,6 +23,8 @@ object DataLakeIntegration {
       val listOfDirectories = getListOfDirectories(arguments.parentFolder.get)
 
       listOfDirectories.foreach(IntegrationRawData.main)
+
+      dataMartUpdate("reftec")
 
       val jobDuration = (System.nanoTime - timeBegin) / 1e9d
       logger.warn(s"===> JOB SUCCESSFUL, CLOSING AFTER $jobDuration SECONDS <===")

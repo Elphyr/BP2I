@@ -10,7 +10,7 @@ class JDBCFunctions {
 
         String url = "jdbc:postgresql://localhost:5432/";
         String user = "postgres";
-        String passwd = "elphyr01";
+        String passwd = "";
 
         Connection con = DriverManager.getConnection(url, user, passwd);
 

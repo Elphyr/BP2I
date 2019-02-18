@@ -22,16 +22,33 @@ object HiveFunctions {
       .csv(desPath)
 
     val desDFColumnsName = desDF.columns.head
-    val deDFColumnsType = desDF.columns(1)
+    val desDFColumnsType = desDF.columns(1)
 
     val tableInformation = getFileInformation(desDF, ".des")
 
     val columns = desDF.select(desDFColumnsName).map(x => x.getString(0)).collect.toList
 
-    val types = desDF.select(deDFColumnsType).map(x => x.getString(0)).collect.toList
+    val types = desDF.select(desDFColumnsType).map(x => x.getString(0)).collect.toList
+
+/*
+    val listOfColumns = desDF.select(desDFColumnsName).collect().map(_.toString())
+
+    val primaryColumn = if (listOfColumns.exists(_.contains("name"))) {
+
+      listOfColumns.filter(_.contains("name")).head.replace("[", "").replace("]", "")
+
+    } else if (listOfColumns.exists(_.contains("id"))) {
+
+      listOfColumns.filter(_.contains("id")).head.replace("[", "").replace("]", "")
+
+    } else {
+
+      listOfColumns.head.replace("[", "").replace("]", "")
+    }
+*/
 
     val primaryColumn = desDF.select(desDFColumnsName).map(x => x.getString(0)).collect.toList
-      .filter(x => x.toLowerCase().contains("id") || x.toLowerCase().contains("name") || x.toLowerCase != "nature_action")
+      .filter(x => (x.toLowerCase().contains("name") || x.toLowerCase().contains("id")) && x.toLowerCase != "nature_action")
       .head
 
     val adaptedTypes = adaptTypes(types)
@@ -44,6 +61,7 @@ object HiveFunctions {
 
     val orderedColumnsAndTypes = columnsAndTypes.reverse
     logger.warn("Step 2: this is the columns and types red from the file: " + "\n" + orderedColumnsAndTypes.mkString(", "))
+    logger.warn(s"PRIMARY COLUMN = $primaryColumn !!!")
 
     (tableInformation, primaryColumn, orderedColumnsAndTypes)
   }
