@@ -1,6 +1,7 @@
 package BP2I.IntegrationDatalake.Utils
 
 case class Arguments(environment: Option[String] = None,
+                     applicationName: Option[String] = None,
                      folder: Option[String] = None,
                      parentFolder: Option[String] = None)
 
@@ -15,6 +16,11 @@ object Arguments {
       opt[String]('e', "environment")
         .action((x, c) => c.copy(environment = Some(x)))
         .text("the working environment: 'local', 'dev', 'qualif', 'prod'")
+        .required()
+
+      opt[String]('a', "application")
+        .action((x, c) => c.copy(applicationName = Some(x)))
+        .text("the name of the application for the datamart")
         .required()
 
       opt[String]('f', "folder")

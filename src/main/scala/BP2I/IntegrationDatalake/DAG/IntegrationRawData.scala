@@ -42,6 +42,7 @@ object IntegrationRawData {
       writeReportRawLayer(addedTableDF, newTableDF, newDataTableInformation)
 
       logger.warn(s"===> JOB COMPLETED FOR TABLE $tableName <===")
+
     } else {
 
       logger.warn(s"Step 4: no table with the same name found, creating new table as '$tableName'")

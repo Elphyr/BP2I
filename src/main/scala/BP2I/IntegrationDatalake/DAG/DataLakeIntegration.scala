@@ -24,7 +24,7 @@ object DataLakeIntegration {
 
       listOfDirectories.foreach(IntegrationRawData.main)
 
-      dataMartUpdate("reftec")
+      dataMartUpdate(arguments.applicationName.get)
 
       val jobDuration = (System.nanoTime - timeBegin) / 1e9d
       logger.warn(s"===> JOB SUCCESSFUL, CLOSING AFTER $jobDuration SECONDS <===")
