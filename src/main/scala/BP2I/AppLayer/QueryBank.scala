@@ -200,7 +200,7 @@ object QueryBank {
       LEFT OUTER JOIN reftec.zproputil1 ON zproputil1.id = zextphy.z_proprietaire_1
       LEFT OUTER JOIN reftec.zproputil2 ON zproputil2.id = zextphy.z_proprietaire_2
       LEFT OUTER JOIN reftec.zstatutvalidite ON zstatutvalidite.id = zextphy.z_statut_validite
-     LEFT OUTER JOIN reftec.ztypeutilisation ON ztypeutilisation.id = zextphy.z_type_utilisation
+      LEFT OUTER JOIN reftec.ztypeutilisation ON ztypeutilisation.id = zextphy.z_type_utilisation
       LEFT OUTER JOIN reftec.ztypemaintenance ON ztypemaintenance.id = zextphy.z_type_maintenance
       LEFT OUTER JOIN reftec.ztypeachat ON zextphy.z_type_achat =  ztypeachat.id
       LEFT OUTER JOIN reftec.zentitejuridique ON zextphy.z_entite_juridique = zentitejuridique.id
